@@ -97,60 +97,97 @@
 //    detail    — optional extra info shown in popup
 // =============================================================
 const LOCATIONS = [
-  // LAUNCH ORIGIN
-  {
-    lat: 35.6892, lng: 51.3890,
-    name: "Iran",
-    type: "launch",
-    detail: "Origin of ballistic missile and drone strikes across the region"
-  },
-
-  // ISRAEL — Israeli strikes on Iranian launchers and air defense
+  // ISRAEL
   {
     lat: 31.7683, lng: 35.2137,
     name: "Israel",
     type: "strike",
-    detail: "IDF and IAF conducted strikes on Iranian missile launchers and air defense systems. Src: @IDF, @iafsite"
+    detail: "IDF and IAF conducted strikes on Iranian missile launchers and air defense systems.",
+    sources: [
+      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
+      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" },
+      { label: "@IDF", url: "https://x.com/idf/status/2027752617313481035" }
+    ]
   },
 
-  // UAE — at least three waves of Iranian strikes
+  // IRAQ
+  {
+    lat: 33.3152, lng: 44.3661,
+    name: "Iraq",
+    type: "strike",
+    detail: "Strike activity reported.",
+    sources: [
+      { label: "@OsintTechnical", url: "https://x.com/Osinttechnical/status/2027718180550922339" }
+    ]
+  },
+
+  // UAE
   {
     lat: 24.4539, lng: 54.3773,
     name: "Abu Dhabi, UAE",
     type: "strike",
-    detail: "At least three waves of Iranian missile/drone attacks reported. Src: @modgovae"
+    detail: "At least three waves of Iranian missile and drone attacks reported.",
+    sources: [
+      { label: "@modgovae (1)", url: "https://x.com/modgovae/status/2027719133706785098" },
+      { label: "@modgovae (2)", url: "https://x.com/modgovae/status/2027685238093279612" }
+    ]
   },
 
-  // JORDAN — missile attack
+  // SAUDI ARABIA
+  {
+    lat: 24.6877, lng: 46.7219,
+    name: "Riyadh, Saudi Arabia",
+    type: "target",
+    detail: "Reported target, details pending.",
+    sources: []
+  },
+
+  // JORDAN
   {
     lat: 31.9454, lng: 35.9284,
     name: "Amman, Jordan",
     type: "strike",
-    detail: "Missile attack reported. Src: @foreignministry"
+    detail: "Missile attack reported.",
+    sources: [
+      { label: "@foreignministry", url: "https://x.com/foreignministry/status/2027721724171567262" }
+    ]
   },
 
-  // KUWAIT — missile attack
+  // KUWAIT
   {
     lat: 29.3759, lng: 47.9774,
     name: "Kuwait City, Kuwait",
     type: "strike",
-    detail: "Missile attack reported. Src: @KuwaitArmyGHQ, @MofaKuwait"
+    detail: "Missile attack reported.",
+    sources: [
+      { label: "@KuwaitArmyGHQ", url: "https://x.com/kuwaitarmyghq/status/2027722722902446193" },
+      { label: "@MofaKuwait", url: "https://x.com/mofakuwait/status/2027696417293152413" }
+    ]
   },
 
-  // BAHRAIN — ballistic missile and drone strike on NSA Base
+  // BAHRAIN
   {
     lat: 26.2361, lng: 50.5860,
-    name: "NSA Bahrain (Naval Support Activity)",
+    name: "NSA Bahrain",
     type: "strike",
-    detail: "Ballistic missile and drone strike on US Naval base. Src: @eslavin_stripes, @osinttechnical"
+    detail: "Ballistic missile and drone strike on US Naval Support Activity Bahrain.",
+    sources: [
+      { label: "@eslavin_stripes", url: "https://x.com/eslavin_stripes/status/2027692129451954506" },
+      { label: "@OsintTechnical (1)", url: "https://x.com/osinttechnical/status/2027677928062906449" },
+      { label: "@OsintTechnical (2)", url: "https://x.com/osinttechnical/status/2027728415848116482" }
+    ]
   },
 
-  // QATAR — missile attacks
+  // QATAR
   {
     lat: 25.2854, lng: 51.5310,
     name: "Doha, Qatar",
     type: "strike",
-    detail: "Missile attacks reported. Src: @MofaQatar_EN, @mod_qatar"
+    detail: "Missile attacks reported.",
+    sources: [
+      { label: "@MofaQatar_EN", url: "https://x.com/mofaqatar_en/status/2027709423007793154" },
+      { label: "@mod_qatar", url: "https://x.com/mod_qatar/status/2027707870054387941" }
+    ]
   }
 ];
 // =============================================================
@@ -198,12 +235,18 @@ LOCATIONS.forEach(loc => {
     }).addTo(map);
   }
 
+  const sourceLinks = loc.sources && loc.sources.length
+    ? `<div style="margin-top:6px"><strong>Sources:</strong><br>${loc.sources.map(s =>
+        `<a href="${s.url}" target="_blank" style="color:#7ab8f5;text-decoration:none">${s.label}</a>`
+      ).join('<br>')}</div>`
+    : '';
+
   marker.bindPopup(`
     <div class="popup-title popup-type-${loc.type}">${loc.name}</div>
     <div><strong>Type:</strong> ${cfg.label}</div>
-    ${loc.detail ? `<div><strong>Detail:</strong> ${loc.detail}</div>` : ''}
-    <div style="color:#888;font-size:10px;margin-top:4px">${loc.lat.toFixed(4)}°, ${loc.lng.toFixed(4)}°</div>
-  `);
+    ${loc.detail ? `<div style="margin-top:4px">${loc.detail}</div>` : ''}
+    ${sourceLinks}
+  `, { maxWidth: 220 });
 });
 
 const legend = L.control({ position: 'bottomright' });
