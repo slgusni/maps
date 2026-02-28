@@ -97,7 +97,118 @@
 //    detail    — optional extra info shown in popup
 // =============================================================
 const LOCATIONS = [
-  // ISRAEL
+  // IDF-REPORTED STRIKES IN IRAN
+  {
+    lat: 37.5500, lng: 45.0500,
+    name: "IDF Strike — Northwestern Iran",
+    type: "idf",
+    detail: "The IDF claims to have struck hundreds of targets in western Iran, including air defense sites and mobile ballistic missile launchers. An IDF animation shows up to 11 air defense sites struck throughout Iran. These strikes mirror Israeli operations during the 12-day war, which destroyed mobile Iranian launchers before they could fire.",
+    sources: [
+      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
+      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" },
+      { label: "@IDF (animation)", url: "https://x.com/idf/status/2027752617313481035" }
+    ]
+  },
+  {
+    lat: 35.9200, lng: 50.8800,
+    name: "IDF Strike — North-Central Iran (1)",
+    type: "idf",
+    detail: "IDF-reported air defense site strike. The IDF released video of IAF fighters destroying Iranian air defense systems and mobile missile launchers across western Iran.",
+    sources: [
+      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
+      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
+    ]
+  },
+  {
+    lat: 35.7500, lng: 51.2000,
+    name: "IDF Strike — North-Central Iran (2)",
+    type: "idf",
+    detail: "IDF-reported air defense site strike. The IDF released video of IAF fighters destroying Iranian air defense systems and mobile missile launchers across western Iran.",
+    sources: [
+      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
+      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
+    ]
+  },
+  {
+    lat: 35.6000, lng: 51.0000,
+    name: "IDF Strike — North-Central Iran (3)",
+    type: "idf",
+    detail: "IDF-reported air defense site strike. The IDF released video of IAF fighters destroying Iranian air defense systems and mobile missile launchers across western Iran.",
+    sources: [
+      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
+      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
+    ]
+  },
+  {
+    lat: 34.3000, lng: 47.0500,
+    name: "IDF Strike — Western Iran (1)",
+    type: "idf",
+    detail: "IDF-reported air defense site or mobile missile launcher strike in western Iran. Mirrors operations from the 12-day war targeting mobile Iranian ballistic missile launchers before launch.",
+    sources: [
+      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
+      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
+    ]
+  },
+  {
+    lat: 33.8000, lng: 46.9000,
+    name: "IDF Strike — Western Iran (2)",
+    type: "idf",
+    detail: "IDF-reported air defense site or mobile missile launcher strike in western Iran. Mirrors operations from the 12-day war targeting mobile Iranian ballistic missile launchers before launch.",
+    sources: [
+      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
+      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
+    ]
+  },
+  {
+    lat: 33.3500, lng: 47.2000,
+    name: "IDF Strike — Western Iran (3)",
+    type: "idf",
+    detail: "IDF-reported air defense site or mobile missile launcher strike in western Iran. Mirrors operations from the 12-day war targeting mobile Iranian ballistic missile launchers before launch.",
+    sources: [
+      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
+      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
+    ]
+  },
+  {
+    lat: 33.1000, lng: 46.8000,
+    name: "IDF Strike — Western Iran (4)",
+    type: "idf",
+    detail: "IDF-reported air defense site or mobile missile launcher strike in western Iran. Mirrors operations from the 12-day war targeting mobile Iranian ballistic missile launchers before launch.",
+    sources: [
+      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
+      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
+    ]
+  },
+  {
+    lat: 32.4500, lng: 47.8000,
+    name: "IDF Strike — West-Central Iran (1)",
+    type: "idf",
+    detail: "IDF-reported air defense site or mobile missile launcher strike in western Iran. Mirrors operations from the 12-day war targeting mobile Iranian ballistic missile launchers before launch.",
+    sources: [
+      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
+      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
+    ]
+  },
+  {
+    lat: 32.2000, lng: 48.5000,
+    name: "IDF Strike — West-Central Iran (2)",
+    type: "idf",
+    detail: "IDF-reported air defense site or mobile missile launcher strike in western Iran. Mirrors operations from the 12-day war targeting mobile Iranian ballistic missile launchers before launch.",
+    sources: [
+      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
+      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
+    ]
+  },
+  {
+    lat: 28.9500, lng: 50.8300,
+    name: "IDF Strike — Southern Iran (Bushehr area)",
+    type: "idf",
+    detail: "IDF-reported strike in southern Iran, possibly targeting air defense infrastructure near Bushehr. The IDF claims to have struck hundreds of targets including air defense sites and mobile missile launchers.",
+    sources: [
+      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
+      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
+    ]
+  },
   {
     lat: 31.7683, lng: 35.2137,
     name: "Israel",
@@ -114,8 +225,8 @@ const LOCATIONS = [
   {
     lat: 33.3152, lng: 44.3661,
     name: "Iraq",
-    type: "strike",
-    detail: "Strike activity reported.",
+    type: "target",
+    detail: "Videos show several alleged air defense engagements over Iraq. Neither the government in Baghdad nor the U.S. has released an official statement on Iranian attacks.",
     sources: [
       { label: "@OsintTechnical", url: "https://x.com/Osinttechnical/status/2027718180550922339" }
     ]
@@ -126,7 +237,7 @@ const LOCATIONS = [
     lat: 24.4539, lng: 54.3773,
     name: "Abu Dhabi, UAE",
     type: "strike",
-    detail: "At least three waves of Iranian missile and drone attacks reported.",
+    detail: "Emirati air defenses have repelled at least three waves of Iranian air and missile attacks, according to the country's defense ministry. Debris from missile interceptions has landed in Abu Dhabi and Dubai, killing one foreign national, according to officials.",
     sources: [
       { label: "@modgovae (1)", url: "https://x.com/modgovae/status/2027719133706785098" },
       { label: "@modgovae (2)", url: "https://x.com/modgovae/status/2027685238093279612" }
@@ -158,7 +269,7 @@ const LOCATIONS = [
     lat: 29.3759, lng: 47.9774,
     name: "Kuwait City, Kuwait",
     type: "strike",
-    detail: "Missile attack reported.",
+    detail: "Kuwait's Ministry of Defense reported the successful air defense engagement of Ali Al-Salem Air Base against Iranian ballistic missiles. Follow-on strikes resulted in the injury of three Kuwaiti military personnel and minor damage to equipment. A separate attack targeted Kuwait International Airport with attack drones, disrupting operations.",
     sources: [
       { label: "@KuwaitArmyGHQ", url: "https://x.com/kuwaitarmyghq/status/2027722722902446193" },
       { label: "@MofaKuwait", url: "https://x.com/mofakuwait/status/2027696417293152413" }
@@ -168,9 +279,9 @@ const LOCATIONS = [
   // BAHRAIN
   {
     lat: 26.2361, lng: 50.5860,
-    name: "NSA Bahrain",
+    name: "NSA Bahrain / U.S. 5th Fleet HQ",
     type: "strike",
-    detail: "Ballistic missile and drone strike on US Naval Support Activity Bahrain.",
+    detail: "The headquarters of the U.S. 5th Fleet in Manama, Bahrain was attacked, according to local officials and reporters from Stars and Stripes. At least one Iranian ballistic missile and a one-way attack drone struck the base, according to several posts on social media. There are no reports of casualties.",
     sources: [
       { label: "@eslavin_stripes", url: "https://x.com/eslavin_stripes/status/2027692129451954506" },
       { label: "@OsintTechnical (1)", url: "https://x.com/osinttechnical/status/2027677928062906449" },
@@ -181,9 +292,9 @@ const LOCATIONS = [
   // QATAR
   {
     lat: 25.2854, lng: 51.5310,
-    name: "Doha, Qatar",
+    name: "Doha, Qatar / Al Udeid Air Base",
     type: "strike",
-    detail: "Missile attacks reported.",
+    detail: "Iran fired at least three waves of missiles at various locations across Qatar. All three waves were intercepted and destroyed before reaching the country's territory, according to the defense ministry. Qatar hosts Al Udeid Air Base, a major hub for American air power operating throughout the Middle East. The base was previously struck during the 12-Day War.",
     sources: [
       { label: "@MofaQatar_EN", url: "https://x.com/mofaqatar_en/status/2027709423007793154" },
       { label: "@mod_qatar", url: "https://x.com/mod_qatar/status/2027707870054387941" }
@@ -197,7 +308,8 @@ const LOCATIONS = [
 const TYPE_CONFIG = {
   strike: { color: "#ff3333", label: "Confirmed Strike" },
   launch: { color: "#ff9900", label: "Launch Origin" },
-  target: { color: "#ffdd00", label: "Reported Target" }
+  target: { color: "#ffdd00", label: "Reported Target" },
+  idf: { color: "#0038B8", label: "IDF-Reported Strike in Iran" }
 };
 
 const lats = LOCATIONS.map(l => l.lat);
@@ -237,7 +349,7 @@ LOCATIONS.forEach(loc => {
 
   const sourceLinks = loc.sources && loc.sources.length
     ? `<div style="margin-top:6px"><strong>Sources:</strong><br>${loc.sources.map(s =>
-        `<a href="${s.url}" target="_blank" style="color:#7ab8f5;text-decoration:none">${s.label}</a>`
+        `<a href="${s.url}" style="color:#7ab8f5;text-decoration:underline">${s.label}</a>`
       ).join('<br>')}</div>`
     : '';
 
