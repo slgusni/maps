@@ -284,7 +284,8 @@ LOCATIONS.forEach(loc => {
 
   if (loc.type === 'strike') {
     L.circleMarker([loc.lat, loc.lng], {
-      radius: 16, color: cfg.color, fillOpacity: 0, weight: 1, opacity: 0.4
+      radius: 16, color: cfg.color, fillOpacity: 0, weight: 1, opacity: 0.4,
+      interactive: false
     }).addTo(map);
   }
 
