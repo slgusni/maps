@@ -1,378 +1,347 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Iranian Retaliation Strikes</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 100%; height: 100%; font-family: Arial, sans-serif; background: #111; }
-
-  #container {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100vh;
-  }
-
-  #header {
-    background: rgba(0,0,0,0.85);
-    color: #f0e0c0;
-    padding: 8px 14px;
-    font-size: 14px;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid #444;
-    flex-shrink: 0;
-  }
-
-  #header span {
-    font-size: 11px;
-    font-weight: normal;
-    color: #aaa;
-    margin-left: 10px;
-  }
-
-  #map {
-    flex: 1;
-    width: 100%;
-    min-height: 0;
-  }
-
-  .leaflet-container { background: #1a2a3a; }
-
-  .legend {
-    background: rgba(0,0,0,0.75);
-    padding: 8px 12px;
-    border-radius: 6px;
-    color: #ddd;
-    font-size: 11px;
-    line-height: 20px;
-  }
-  .legend-item { display: flex; align-items: center; gap: 7px; }
-  .legend-dot {
-    width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
-    border: 2px solid rgba(255,255,255,0.4);
-  }
-
-  .leaflet-popup-content-wrapper {
-    background: rgba(20,20,30,0.95);
-    color: #eee;
-    border: 1px solid #555;
-    border-radius: 6px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.6);
-  }
-  .leaflet-popup-tip { background: rgba(20,20,30,0.95); }
-  .leaflet-popup-content { margin: 10px 14px; font-size: 12px; line-height: 1.6; }
-  .popup-title { font-weight: bold; font-size: 13px; margin-bottom: 4px; }
-  .popup-type-strike { color: #ff4444; }
-  .popup-type-launch { color: #ff9900; }
-  .popup-type-target { color: #ffdd00; }
-</style>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2685.4">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times; -webkit-text-stroke: #000000}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times; -webkit-text-stroke: #000000; min-height: 14.0px}
+    span.s1 {font-kerning: none}
+  </style>
 </head>
 <body>
-<div id="container">
-  <div id="header">
-    🎯 Iranian Retaliation Strikes
-    <span id="subtitle">Iranian Strikes Across the Middle East — Feb 28, 2026</span>
-  </div>
-  <div id="map"></div>
-</div>
-
-<script>
-// =============================================================
-//  ✏️  EDIT THIS SECTION TO ADD / UPDATE LOCATIONS
-//
-//  Types:
-//    "strike"  — confirmed strike location  (red)
-//    "launch"  — launch origin / fired from (orange)
-//    "target"  — reported target / unconfirmed (yellow)
-//
-//  Fields:
-//    lat, lng  — coordinates (decimal degrees)
-//    name      — location name shown in popup
-//    type      — "strike" | "launch" | "target"
-//    detail    — optional extra info shown in popup
-// =============================================================
-const LOCATIONS = [
-  // IDF-REPORTED STRIKES IN IRAN
-  {
-    lat: 37.5500, lng: 45.0500,
-    name: "IDF Strike — Northwestern Iran",
-    type: "idf",
-    detail: "The IDF claims to have struck hundreds of targets in western Iran, including air defense sites and mobile ballistic missile launchers. An IDF animation shows up to 11 air defense sites struck throughout Iran. These strikes mirror Israeli operations during the 12-day war, which destroyed mobile Iranian launchers before they could fire.",
-    sources: [
-      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
-      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" },
-      { label: "@IDF (animation)", url: "https://x.com/idf/status/2027752617313481035" }
-    ]
-  },
-  {
-    lat: 35.9200, lng: 50.8800,
-    name: "IDF Strike — North-Central Iran (1)",
-    type: "idf",
-    detail: "IDF-reported air defense site strike. The IDF released video of IAF fighters destroying Iranian air defense systems and mobile missile launchers across western Iran.",
-    sources: [
-      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
-      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
-    ]
-  },
-  {
-    lat: 35.7500, lng: 51.2000,
-    name: "IDF Strike — North-Central Iran (2)",
-    type: "idf",
-    detail: "IDF-reported air defense site strike. The IDF released video of IAF fighters destroying Iranian air defense systems and mobile missile launchers across western Iran.",
-    sources: [
-      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
-      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
-    ]
-  },
-  {
-    lat: 35.6000, lng: 51.0000,
-    name: "IDF Strike — North-Central Iran (3)",
-    type: "idf",
-    detail: "IDF-reported air defense site strike. The IDF released video of IAF fighters destroying Iranian air defense systems and mobile missile launchers across western Iran.",
-    sources: [
-      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
-      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
-    ]
-  },
-  {
-    lat: 34.3000, lng: 47.0500,
-    name: "IDF Strike — Western Iran (1)",
-    type: "idf",
-    detail: "IDF-reported air defense site or mobile missile launcher strike in western Iran. Mirrors operations from the 12-day war targeting mobile Iranian ballistic missile launchers before launch.",
-    sources: [
-      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
-      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
-    ]
-  },
-  {
-    lat: 33.8000, lng: 46.9000,
-    name: "IDF Strike — Western Iran (2)",
-    type: "idf",
-    detail: "IDF-reported air defense site or mobile missile launcher strike in western Iran. Mirrors operations from the 12-day war targeting mobile Iranian ballistic missile launchers before launch.",
-    sources: [
-      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
-      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
-    ]
-  },
-  {
-    lat: 33.3500, lng: 47.2000,
-    name: "IDF Strike — Western Iran (3)",
-    type: "idf",
-    detail: "IDF-reported air defense site or mobile missile launcher strike in western Iran. Mirrors operations from the 12-day war targeting mobile Iranian ballistic missile launchers before launch.",
-    sources: [
-      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
-      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
-    ]
-  },
-  {
-    lat: 33.1000, lng: 46.8000,
-    name: "IDF Strike — Western Iran (4)",
-    type: "idf",
-    detail: "IDF-reported air defense site or mobile missile launcher strike in western Iran. Mirrors operations from the 12-day war targeting mobile Iranian ballistic missile launchers before launch.",
-    sources: [
-      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
-      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
-    ]
-  },
-  {
-    lat: 32.4500, lng: 47.8000,
-    name: "IDF Strike — West-Central Iran (1)",
-    type: "idf",
-    detail: "IDF-reported air defense site or mobile missile launcher strike in western Iran. Mirrors operations from the 12-day war targeting mobile Iranian ballistic missile launchers before launch.",
-    sources: [
-      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
-      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
-    ]
-  },
-  {
-    lat: 32.2000, lng: 48.5000,
-    name: "IDF Strike — West-Central Iran (2)",
-    type: "idf",
-    detail: "IDF-reported air defense site or mobile missile launcher strike in western Iran. Mirrors operations from the 12-day war targeting mobile Iranian ballistic missile launchers before launch.",
-    sources: [
-      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
-      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
-    ]
-  },
-  {
-    lat: 28.9500, lng: 50.8300,
-    name: "IDF Strike — Southern Iran (Bushehr area)",
-    type: "idf",
-    detail: "IDF-reported strike in southern Iran, possibly targeting air defense infrastructure near Bushehr. The IDF claims to have struck hundreds of targets including air defense sites and mobile missile launchers.",
-    sources: [
-      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
-      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }
-    ]
-  },
-  {
-    lat: 31.7683, lng: 35.2137,
-    name: "Israel",
-    type: "strike",
-    detail: "IDF and IAF conducted strikes on Iranian missile launchers and air defense systems.",
-    sources: [
-      { label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },
-      { label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" },
-      { label: "@IDF", url: "https://x.com/idf/status/2027752617313481035" }
-    ]
-  },
-
-  // IRAQ
-  {
-    lat: 33.3152, lng: 44.3661,
-    name: "Iraq",
-    type: "target",
-    detail: "Videos show several alleged air defense engagements over Iraq. Neither the government in Baghdad nor the U.S. has released an official statement on Iranian attacks.",
-    sources: [
-      { label: "@OsintTechnical", url: "https://x.com/Osinttechnical/status/2027718180550922339" }
-    ]
-  },
-
-  // UAE
-  {
-    lat: 24.4539, lng: 54.3773,
-    name: "Abu Dhabi, UAE",
-    type: "strike",
-    detail: "Emirati air defenses have repelled at least three waves of Iranian air and missile attacks, according to the country's defense ministry. Debris from missile interceptions has landed in Abu Dhabi and Dubai, killing one foreign national, according to officials.",
-    sources: [
-      { label: "@modgovae (1)", url: "https://x.com/modgovae/status/2027719133706785098" },
-      { label: "@modgovae (2)", url: "https://x.com/modgovae/status/2027685238093279612" }
-    ]
-  },
-
-  // SAUDI ARABIA
-  {
-    lat: 24.6877, lng: 46.7219,
-    name: "Riyadh, Saudi Arabia",
-    type: "target",
-    detail: "Reported target, details pending.",
-    sources: []
-  },
-
-  // JORDAN
-  {
-    lat: 31.9454, lng: 35.9284,
-    name: "Amman, Jordan",
-    type: "strike",
-    detail: "Missile attack reported.",
-    sources: [
-      { label: "@foreignministry", url: "https://x.com/foreignministry/status/2027721724171567262" }
-    ]
-  },
-
-  // KUWAIT
-  {
-    lat: 29.3759, lng: 47.9774,
-    name: "Kuwait City, Kuwait",
-    type: "strike",
-    detail: "Kuwait's Ministry of Defense reported the successful air defense engagement of Ali Al-Salem Air Base against Iranian ballistic missiles. Follow-on strikes resulted in the injury of three Kuwaiti military personnel and minor damage to equipment. A separate attack targeted Kuwait International Airport with attack drones, disrupting operations.",
-    sources: [
-      { label: "@KuwaitArmyGHQ", url: "https://x.com/kuwaitarmyghq/status/2027722722902446193" },
-      { label: "@MofaKuwait", url: "https://x.com/mofakuwait/status/2027696417293152413" }
-    ]
-  },
-
-  // BAHRAIN
-  {
-    lat: 26.2361, lng: 50.5860,
-    name: "NSA Bahrain / U.S. 5th Fleet HQ",
-    type: "strike",
-    detail: "The headquarters of the U.S. 5th Fleet in Manama, Bahrain was attacked, according to local officials and reporters from Stars and Stripes. At least one Iranian ballistic missile and a one-way attack drone struck the base, according to several posts on social media. There are no reports of casualties.",
-    sources: [
-      { label: "@eslavin_stripes", url: "https://x.com/eslavin_stripes/status/2027692129451954506" },
-      { label: "@OsintTechnical (1)", url: "https://x.com/osinttechnical/status/2027677928062906449" },
-      { label: "@OsintTechnical (2)", url: "https://x.com/osinttechnical/status/2027728415848116482" }
-    ]
-  },
-
-  // QATAR
-  {
-    lat: 25.2854, lng: 51.5310,
-    name: "Doha, Qatar / Al Udeid Air Base",
-    type: "strike",
-    detail: "Iran fired at least three waves of missiles at various locations across Qatar. All three waves were intercepted and destroyed before reaching the country's territory, according to the defense ministry. Qatar hosts Al Udeid Air Base, a major hub for American air power operating throughout the Middle East. The base was previously struck during the 12-Day War.",
-    sources: [
-      { label: "@MofaQatar_EN", url: "https://x.com/mofaqatar_en/status/2027709423007793154" },
-      { label: "@mod_qatar", url: "https://x.com/mod_qatar/status/2027707870054387941" }
-    ]
-  }
-];
-// =============================================================
-//  END OF EDITABLE SECTION
-// =============================================================
-
-const TYPE_CONFIG = {
-  strike: { color: "#ff3333", label: "Confirmed Strike" },
-  launch: { color: "#ff9900", label: "Launch Origin" },
-  target: { color: "#ffdd00", label: "Reported Target" },
-  idf: { color: "#0038B8", label: "IDF-Reported Strike in Iran" }
-};
-
-const lats = LOCATIONS.map(l => l.lat);
-const lngs = LOCATIONS.map(l => l.lng);
-const bounds = [[Math.min(...lats)-2, Math.min(...lngs)-2], [Math.max(...lats)+2, Math.max(...lngs)+2]];
-
-const map = L.map('map', {
-  zoomControl: true,
-  attributionControl: true
-}).fitBounds(bounds);
-
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  crossOrigin: true
-}).addTo(map);
-
-LOCATIONS.forEach(loc => {
-  const cfg = TYPE_CONFIG[loc.type] || TYPE_CONFIG.target;
-
-  const marker = L.circleMarker([loc.lat, loc.lng], {
-    radius: 9,
-    color: cfg.color,
-    fillColor: cfg.color,
-    fillOpacity: 0.85,
-    weight: 2
-  }).addTo(map);
-
-  if (loc.type === 'strike') {
-    L.circleMarker([loc.lat, loc.lng], {
-      radius: 16,
-      color: cfg.color,
-      fillOpacity: 0,
-      weight: 1,
-      opacity: 0.4
-    }).addTo(map);
-  }
-
-  const sourceLinks = loc.sources && loc.sources.length
-    ? `<div style="margin-top:6px"><strong>Sources:</strong><br>${loc.sources.map(s =>
-        `<a href="${s.url}" style="color:#7ab8f5;text-decoration:underline">${s.label}</a>`
-      ).join('<br>')}</div>`
-    : '';
-
-  marker.bindPopup(`
-    <div class="popup-title popup-type-${loc.type}">${loc.name}</div>
-    <div><strong>Type:</strong> ${cfg.label}</div>
-    ${loc.detail ? `<div style="margin-top:4px">${loc.detail}</div>` : ''}
-    ${sourceLinks}
-  `, { maxWidth: 220 });
-});
-
-const legend = L.control({ position: 'bottomright' });
-legend.onAdd = () => {
-  const d = L.DomUtil.create('div', 'legend');
-  d.innerHTML = Object.entries(TYPE_CONFIG).map(([, cfg]) =>
-    `<div class="legend-item">
-      <div class="legend-dot" style="background:${cfg.color}"></div>
-      ${cfg.label}
-    </div>`
-  ).join('');
-  return d;
-};
-legend.addTo(map);
-</script>
+<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
+<p class="p1"><span class="s1">&lt;html lang="en"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;head&gt;</span></p>
+<p class="p1"><span class="s1">&lt;meta charset="UTF-8"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;title&gt;Iranian Retaliation Strikes&lt;/title&gt;</span></p>
+<p class="p1"><span class="s1">&lt;link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/&gt;</span></p>
+<p class="p1"><span class="s1">&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"&gt;&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1">&lt;style&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>* { margin: 0; padding: 0; box-sizing: border-box; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>html, body { width: 100%; height: 100%; font-family: Arial, sans-serif; background: #111; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>#container { display: flex; flex-direction: column; width: 100%; height: 100vh; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>#header {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>background: rgba(0,0,0,0.85); color: #f0e0c0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>padding: 8px 14px; font-size: 14px; font-weight: bold;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>letter-spacing: 0.5px; border-bottom: 1px solid #444; flex-shrink: 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>#header span { font-size: 11px; font-weight: normal; color: #aaa; margin-left: 10px; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>#map { flex: 1; width: 100%; min-height: 0; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>.leaflet-container { background: #1a2a3a; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>.legend { background: rgba(0,0,0,0.75); padding: 8px 12px; border-radius: 6px; color: #ddd; font-size: 11px; line-height: 20px; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>.legend-item { display: flex; align-items: center; gap: 7px; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>.legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.4); }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>.leaflet-popup-content-wrapper {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>background: rgba(20,20,30,0.95); color: #eee;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>border: 1px solid #555; border-radius: 6px; box-shadow: 0 2px 12px rgba(0,0,0,0.6);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>.leaflet-popup-tip { background: rgba(20,20,30,0.95); }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>.leaflet-popup-content { margin: 10px 14px; font-size: 12px; line-height: 1.6; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>.popup-title { font-weight: bold; font-size: 13px; margin-bottom: 4px; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>.popup-type-strike { color: #ff4444; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>.popup-type-launch { color: #ff9900; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>.popup-type-target { color: #ffdd00; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>.popup-type-idf { color: #0038B8; }</span></p>
+<p class="p1"><span class="s1">&lt;/style&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
+<p class="p1"><span class="s1">&lt;body&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div id="container"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div id="header"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>🎯 Iranian Retaliation Strikes</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;span&gt;Iranian Strikes Across the Middle East — Feb 28, 2026&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div id="map"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;script&gt;</span></p>
+<p class="p1"><span class="s1">const LOCATIONS = [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// IDF-REPORTED STRIKES IN IRAN</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 37.5500, lng: 45.0500,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "IDF Strike — Northwestern Iran",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "idf",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "The IDF claims to have struck hundreds of targets in western Iran, including air defense sites and mobile ballistic missile launchers. An IDF animation shows up to 11 air defense sites struck throughout Iran. These strikes mirror Israeli operations during the 12-day war, which destroyed mobile Iranian launchers before they could fire.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@IDF (animation)", url: "https://x.com/idf/status/2027752617313481035" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 35.9200, lng: 50.8800,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "IDF Strike — North-Central Iran (1)",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "idf",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "IDF-reported air defense site strike. The IDF released video of IAF fighters destroying Iranian air defense systems and mobile missile launchers across western Iran.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 35.7500, lng: 51.2000,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "IDF Strike — North-Central Iran (2)",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "idf",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "IDF-reported air defense site strike. The IDF released video of IAF fighters destroying Iranian air defense systems and mobile missile launchers across western Iran.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 35.6000, lng: 51.0000,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "IDF Strike — North-Central Iran (3)",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "idf",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "IDF-reported air defense site strike. The IDF released video of IAF fighters destroying Iranian air defense systems and mobile missile launchers across western Iran.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 34.3000, lng: 47.0500,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "IDF Strike — Western Iran (1)",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "idf",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "IDF-reported air defense site or mobile missile launcher strike in western Iran. Mirrors operations from the 12-day war targeting mobile Iranian ballistic missile launchers before launch.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 33.8000, lng: 46.9000,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "IDF Strike — Western Iran (2)",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "idf",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "IDF-reported air defense site or mobile missile launcher strike in western Iran. Mirrors operations from the 12-day war targeting mobile Iranian ballistic missile launchers before launch.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 33.3500, lng: 47.2000,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "IDF Strike — Western Iran (3)",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "idf",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "IDF-reported air defense site or mobile missile launcher strike in western Iran. Mirrors operations from the 12-day war targeting mobile Iranian ballistic missile launchers before launch.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 33.1000, lng: 46.8000,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "IDF Strike — Western Iran (4)",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "idf",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "IDF-reported air defense site or mobile missile launcher strike in western Iran. Mirrors operations from the 12-day war targeting mobile Iranian ballistic missile launchers before launch.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 32.4500, lng: 47.8000,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "IDF Strike — West-Central Iran (1)",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "idf",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "IDF-reported air defense site or mobile missile launcher strike in western Iran. Mirrors operations from the 12-day war targeting mobile Iranian ballistic missile launchers before launch.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 32.2000, lng: 48.5000,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "IDF Strike — West-Central Iran (2)",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "idf",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "IDF-reported air defense site or mobile missile launcher strike in western Iran. Mirrors operations from the 12-day war targeting mobile Iranian ballistic missile launchers before launch.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 28.9500, lng: 50.8300,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "IDF Strike — Southern Iran (Bushehr area)",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "idf",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "IDF-reported strike in southern Iran, possibly targeting air defense infrastructure near Bushehr. The IDF claims to have struck hundreds of targets including air defense sites and mobile missile launchers.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// ISRAEL</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 31.7683, lng: 35.2137,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "Israel",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "strike",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "IDF and IAF conducted strikes on Iranian missile launchers and air defense systems.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@IDF", url: "https://x.com/idf/status/2027710571261403556" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@iafsite", url: "https://x.com/iafsite/status/2027730019955437994" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@IDF", url: "https://x.com/idf/status/2027752617313481035" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// IRAQ</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 33.3152, lng: 44.3661,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "Iraq",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "target",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "Videos show several alleged air defense engagements over Iraq. Neither the government in Baghdad nor the U.S. has released an official statement on Iranian attacks.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@OsintTechnical", url: "https://x.com/Osinttechnical/status/2027718180550922339" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// UAE</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 24.4539, lng: 54.3773,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "Abu Dhabi, UAE",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "strike",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "Emirati air defenses have repelled at least three waves of Iranian air and missile attacks, according to the country's defense ministry. Debris from missile interceptions has landed in Abu Dhabi and Dubai, killing one foreign national, according to officials.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@modgovae (1)", url: "https://x.com/modgovae/status/2027719133706785098" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@modgovae (2)", url: "https://x.com/modgovae/status/2027685238093279612" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// SAUDI ARABIA</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 24.6877, lng: 46.7219,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "Riyadh, Saudi Arabia",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "target",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "Jordan's Ministry of Foreign Affairs condemned Iranian attacks against Saudi Arabia. No official statement from Riyadh has been released.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: []</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// JORDAN</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 31.9454, lng: 35.9284,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "Amman, Jordan",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "strike",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "The Jordanian Ministry of Foreign Affairs confirmed Iran launched missiles toward the country. Jordan also condemned Iranian attacks against Saudi Arabia.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@foreignministry", url: "https://x.com/foreignministry/status/2027721724171567262" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// KUWAIT</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 29.3759, lng: 47.9774,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "Kuwait City, Kuwait",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "strike",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "Kuwait's Ministry of Defense reported the successful air defense engagement of Ali Al-Salem Air Base against Iranian ballistic missiles. Follow-on strikes resulted in the injury of three Kuwaiti military personnel and minor damage to equipment. A separate attack targeted Kuwait International Airport with attack drones, disrupting operations.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@KuwaitArmyGHQ", url: "https://x.com/kuwaitarmyghq/status/2027722722902446193" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@MofaKuwait", url: "https://x.com/mofakuwait/status/2027696417293152413" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// BAHRAIN</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 26.2361, lng: 50.5860,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "NSA Bahrain / U.S. 5th Fleet HQ",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "strike",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "The headquarters of the U.S. 5th Fleet in Manama, Bahrain was attacked, according to local officials and reporters from Stars and Stripes. At least one Iranian ballistic missile and a one-way attack drone struck the base, according to several posts on social media. There are no reports of casualties.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@eslavin_stripes", url: "https://x.com/eslavin_stripes/status/2027692129451954506" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@OsintTechnical (1)", url: "https://x.com/osinttechnical/status/2027677928062906449" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@OsintTechnical (2)", url: "https://x.com/osinttechnical/status/2027728415848116482" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// QATAR</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lat: 25.2854, lng: 51.5310,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name: "Doha, Qatar / Al Udeid Air Base",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>type: "strike",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detail: "Iran fired at least three waves of missiles at various locations across Qatar. All three waves were intercepted and destroyed before reaching the country's territory, according to the defense ministry. Qatar hosts Al Udeid Air Base, a major hub for American air power operating throughout the Middle East. The base was previously struck during the 12-Day War.",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sources: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@MofaQatar_EN", url: "https://x.com/mofaqatar_en/status/2027709423007793154" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ label: "@mod_qatar", url: "https://x.com/mod_qatar/status/2027707870054387941" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
+<p class="p1"><span class="s1">];</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">const TYPE_CONFIG = {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>strike: { color: "#ff3333", label: "Confirmed Strike" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>target: { color: "#ffdd00", label: "Reported Target" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>idf: { color: "#0038B8", label: "IDF-Reported Strike in Iran" }</span></p>
+<p class="p1"><span class="s1">};</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">const lats = LOCATIONS.map(l =&gt; l.lat);</span></p>
+<p class="p1"><span class="s1">const lngs = LOCATIONS.map(l =&gt; l.lng);</span></p>
+<p class="p1"><span class="s1">const bounds = [[Math.min(...lats)-2, Math.min(...lngs)-2], [Math.max(...lats)+2, Math.max(...lngs)+2]];</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">const map = L.map('map', {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>zoomControl: true,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>attributionControl: true</span></p>
+<p class="p1"><span class="s1">}).fitBounds(bounds);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>attribution: '© &lt;a href="https://www.openstreetmap.org/copyright"&gt;OpenStreetMap&lt;/a&gt; contributors',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>crossOrigin: true</span></p>
+<p class="p1"><span class="s1">}).addTo(map);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">LOCATIONS.forEach(loc =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const cfg = TYPE_CONFIG[loc.type] || TYPE_CONFIG.target;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const marker = L.circleMarker([loc.lat, loc.lng], {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>radius: 9,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>color: cfg.color,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>fillColor: cfg.color,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>fillOpacity: 0.85,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>weight: 2</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}).addTo(map);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if (loc.type === 'strike') {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>L.circleMarker([loc.lat, loc.lng], {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>radius: 16, color: cfg.color, fillOpacity: 0, weight: 1, opacity: 0.4</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}).addTo(map);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const sourceLinks = loc.sources &amp;&amp; loc.sources.length</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>? `&lt;div style="margin-top:6px"&gt;&lt;strong&gt;Sources:&lt;/strong&gt;&lt;br&gt;${loc.sources.map(s =&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>`&lt;a href="${s.url}" style="color:#7ab8f5;text-decoration:underline"&gt;${s.label}&lt;/a&gt;`</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>).join('&lt;br&gt;')}&lt;/div&gt;`</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>: '';</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>marker.bindPopup(`</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="popup-title popup-type-${loc.type}"&gt;${loc.name}&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div&gt;&lt;strong&gt;Type:&lt;/strong&gt; ${cfg.label}&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>${loc.detail ? `&lt;div style="margin-top:4px"&gt;${loc.detail}&lt;/div&gt;` : ''}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>${sourceLinks}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>`, { maxWidth: 260 });</span></p>
+<p class="p1"><span class="s1">});</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">// USNI News logo</span></p>
+<p class="p1"><span class="s1">const logo = L.control({ position: 'bottomleft' });</span></p>
+<p class="p1"><span class="s1">logo.onAdd = () =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const d = L.DomUtil.create('div');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>d.style.cssText = 'padding:4px 6px;background:rgba(0,0,0,0.6);border-radius:4px;';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>d.innerHTML = '&lt;img src="https://news.usni.org/wp-content/uploads/2016/02/usni_logo.png" style="height:28px;display:block;"&gt;';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>return d;</span></p>
+<p class="p1"><span class="s1">};</span></p>
+<p class="p1"><span class="s1">logo.addTo(map);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">// Legend</span></p>
+<p class="p1"><span class="s1">const legend = L.control({ position: 'bottomright' });</span></p>
+<p class="p1"><span class="s1">legend.onAdd = () =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const d = L.DomUtil.create('div', 'legend');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>d.innerHTML = Object.entries(TYPE_CONFIG).map(([, cfg]) =&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>`&lt;div class="legend-item"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="legend-dot" style="background:${cfg.color}"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>${cfg.label}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;`</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>).join('');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>return d;</span></p>
+<p class="p1"><span class="s1">};</span></p>
+<p class="p1"><span class="s1">legend.addTo(map);</span></p>
+<p class="p1"><span class="s1">&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/html&gt;</span></p>
 </body>
 </html>
