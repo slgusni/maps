@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pacific Locations</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; font-family: Arial, sans-serif; background: #111; }
+  #container { display: flex; flex-direction: column; width: 100%; height: 100vh; }
+  #header {
+    background: rgba(0,0,0,0.85); color: #f0e0c0;
+    padding: 8px 14px; font-size: 14px; font-weight: bold;
+    letter-spacing: 0.5px; border-bottom: 1px solid #444; flex-shrink: 0;
+  }
+  #header span { font-size: 11px; font-weight: normal; color: #aaa; margin-left: 10px; }
+  #map { flex: 1; width: 100%; min-height: 0; }
+  .leaflet-container { background: #1a2a3a; }
+  .leaflet-popup-content-wrapper {
+    background: rgba(20,20,30,0.95); color: #eee;
+    border: 1px solid #555; border-radius: 6px;
+  }
+  .leaflet-popup-tip { background: rgba(20,20,30,0.95); }
+  .leaflet-popup-content { margin: 10px 14px; font-size: 12px; line-height: 1.6; }
+  .popup-title { font-weight: bold; font-size: 13px; margin-bottom: 4px; color: #f0e0c0; }
+</style>
+</head>
+<body>
+<div id="container">
+  <div id="header">
+    🗺 Pacific Locations
+    <span>Port Moresby · Darwin · Davao</span>
+  </div>
+  <div id="map"></div>
+</div>
+<script>
+const LOCATIONS = [
+  {
+    lat: -9.4790, lng: 147.1494,
+    name: "Port Moresby",
+    detail: "Capital of Papua New Guinea."
+  },
+  {
+    lat: -12.4637, lng: 130.8444,
+    name: "Darwin",
+    detail: "Capital of the Northern Territory, Australia."
+  },
+  {
+    lat: 7.0647, lng: 125.6088,
+    name: "Davao City",
+    detail: "Major city in Mindanao, Philippines."
+  }
+];
+
+const lats = LOCATIONS.map(l => l.lat);
+const lngs = LOCATIONS.map(l => l.lng);
+const bounds = [[Math.min(...lats)-3, Math.min(...lngs)-3], [Math.max(...lats)+3, Math.max(...lngs)+3]];
+
+const map = L.map('map', {
+  zoomControl: true,
+  attributionControl: true
+}).fitBounds(bounds);
+
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  crossOrigin: true
+}).addTo(map);
+
+LOCATIONS.forEach(loc => {
+  // Marker dot
+  const marker = L.circleMarker([loc.lat, loc.lng], {
+    radius: 8,
+    color: '#fff',
+    fillColor: '#ff4444',
+    fillOpacity: 1,
+    weight: 2
+  }).addTo(map);
+
+  // Pulse ring
+  L.circleMarker([loc.lat, loc.lng], {
+    radius: 15, color: '#ff4444', fillOpacity: 0, weight: 1, opacity: 0.4,
+    interactive: false
+  }).addTo(map);
+
+  // Label
+  L.marker([loc.lat, loc.lng], {
+    icon: L.divIcon({
+      className: '',
+      html: `<div style="color:#fff;font-weight:bold;font-size:11px;white-space:nowrap;
+             text-shadow:1px 1px 3px #000,-1px -1px 3px #000;
+             padding-left:12px;margin-top:-7px">${loc.name}</div>`,
+      iconAnchor: [0, 0]
+    }),
+    interactive: false
+  }).addTo(map);
+
+  // Popup
+  marker.bindPopup(`
+    <div class="popup-title">${loc.name}</div>
+    <div>${loc.detail}</div>
+    <div style="color:#888;font-size:10px;margin-top:4px">${loc.lat.toFixed(4)}°, ${loc.lng.toFixed(4)}°</div>
+  `, { maxWidth: 220 });
+});
+
+// USNI News logo
+const logo = L.control({ position: 'bottomleft' });
+logo.onAdd = () => {
+  const d = L.DomUtil.create('div');
+  d.style.cssText = 'padding:4px 6px;background:rgba(0,0,0,0.6);border-radius:4px;';
+  d.innerHTML = '<img src="https://news.usni.org/wp-content/uploads/2016/02/usni_logo.png" style="height:28px;display:block;">';
+  return d;
+};
+logo.addTo(map);
+</script>
+</body>
+</html>
