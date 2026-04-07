@@ -56,7 +56,7 @@ const LOCATIONS = [
 
 const lats = LOCATIONS.map(l => l.lat);
 const lngs = LOCATIONS.map(l => l.lng);
-const bounds = [[Math.min(...lats)-3, Math.min(...lngs)-3], [Math.max(...lats)+3, Math.max(...lngs)+3]];
+const bounds = [[Math.min(...lats)-1, Math.min(...lngs)-1], [Math.max(...lats)+1, Math.max(...lngs)+1]];
 
 const map = L.map('map', {
   zoomControl: true,
