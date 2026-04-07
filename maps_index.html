@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Map Library</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: #eee;
+    min-height: 100vh;
+    padding: 30px 20px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  header h1 {
+    font-size: 22px;
+    color: #cde;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  header p {
+    font-size: 12px;
+    color: #777;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 18px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: #1c1c2e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s, transform 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+  .card:hover {
+    border-color: #667;
+    transform: translateY(-2px);
+  }
+
+  .card-thumb {
+    width: 100%;
+    height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    flex-shrink: 0;
+  }
+
+  .card-body {
+    padding: 12px 14px 14px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: #dde;
+  }
+
+  .card-desc {
+    font-size: 11px;
+    color: #888;
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .card-meta {
+    font-size: 10px;
+    color: #555;
+    margin-top: 6px;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: bold;
+    margin-right: 4px;
+    text-transform: uppercase;
+  }
+  .tag-rings   { background: #1a3a1a; color: #6c6; }
+  .tag-strikes { background: #3a1a1a; color: #c66; }
+  .tag-dod     { background: #1a1a3a; color: #66c; }
+  .tag-locator { background: #1a2a3a; color: #68a; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🗺 Map Library</h1>
+  <p>Click a map to open it</p>
+</header>
+
+<div class="grid">
+
+  <a class="card" href="index.html">
+    <div class="card-thumb" style="background:#0d1f0d;">🎯</div>
+    <div class="card-body">
+      <div class="card-title">Philippines Range Rings</div>
+      <div class="card-desc">Range rings for NMESIS, MRC/Typhon SM-6, and HIMARS Precision Strike Missile from Basco and Lal-lo airports.</div>
+      <div class="card-meta">
+        <span class="tag tag-rings">Range Rings</span>
+        <span class="card-date">Feb 2026</span>
+      </div>
+    </div>
+  </a>
+
+  <a class="card" href="iranian_strikes.html">
+    <div class="card-thumb" style="background:#1f0d0d;">🚀</div>
+    <div class="card-body">
+      <div class="card-title">Iranian Retaliation Strikes</div>
+      <div class="card-desc">Iranian ballistic missile and drone strikes across the Middle East — UAE, Israel, Jordan, Kuwait, Bahrain, Qatar.</div>
+      <div class="card-meta">
+        <span class="tag tag-strikes">Strike Map</span>
+        <span class="card-date">Feb 28, 2026</span>
+      </div>
+    </div>
+  </a>
+
+  <a class="card" href="iran-strikes-v2.html">
+    <div class="card-thumb" style="background:#0d0d1f;">🛡️</div>
+    <div class="card-body">
+      <div class="card-title">Operation EPIC FURY — DoD Briefing Map</div>
+      <div class="card-desc">Unclassified DoD briefing map showing U.S./Israeli strikes on Iran, Iranian strikes across the region, U.S. bases, Iranian air defenses, and nuclear sites.</div>
+      <div class="card-meta">
+        <span class="tag tag-dod">DoD Briefing</span>
+        <span class="card-date">Feb 28, 2026</span>
+      </div>
+    </div>
+  </a>
+
+  <a class="card" href="pacific_locations.html">
+    <div class="card-thumb" style="background:#0d1a2a;">🌏</div>
+    <div class="card-body">
+      <div class="card-title">Pacific Locations</div>
+      <div class="card-desc">Key locations in the Pacific region — Port Moresby, Darwin, and Davao City.</div>
+      <div class="card-meta">
+        <span class="tag tag-locator">Locator</span>
+        <span class="card-date">Mar 2026</span>
+      </div>
+    </div>
+  </a>
+
+</div>
+
+</body>
+</html>
