@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Major PLAN Bases</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; font-family: Arial, sans-serif; background: #111; }
+  #container { display: flex; flex-direction: column; width: 100%; height: 100vh; }
+  #header {
+    background: rgba(0,0,0,0.85); color: #f0e0c0;
+    padding: 8px 14px; font-size: 14px; font-weight: bold;
+    letter-spacing: 0.5px; border-bottom: 1px solid #444; flex-shrink: 0;
+  }
+  #header span { font-size: 11px; font-weight: normal; color: #aaa; margin-left: 10px; }
+  #map { flex: 1; width: 100%; min-height: 0; }
+  .leaflet-container { background: #1a2a3a; }
+
+  .leaflet-popup-content-wrapper {
+    background: rgba(15,15,25,0.97); color: #eee;
+    border: 1px solid #555; border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+    min-width: 220px;
+  }
+  .leaflet-popup-tip { background: rgba(15,15,25,0.97); }
+  .leaflet-popup-content { margin: 12px 16px; font-size: 12px; line-height: 1.6; }
+
+  .popup-title {
+    font-weight: bold; font-size: 14px;
+    margin-bottom: 2px; color: #f0e0c0;
+  }
+  .popup-theater {
+    font-size: 10px; color: #888; margin-bottom: 10px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .popup-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 6px; margin-bottom: 10px;
+  }
+  .popup-stat {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #333; border-radius: 5px;
+    padding: 6px 8px; text-align: center;
+  }
+  .popup-stat-value {
+    font-size: 16px; font-weight: bold; color: #f0e0c0;
+  }
+  .popup-stat-label {
+    font-size: 9px; color: #888; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-top: 2px;
+  }
+  .popup-link {
+    display: block; text-align: center; margin-top: 8px;
+    padding: 5px; background: rgba(255,255,255,0.08);
+    border-radius: 4px; color: #7ab8f5;
+    text-decoration: none; font-size: 11px;
+  }
+  .popup-link:hover { background: rgba(255,255,255,0.15); }
+
+  /* Legend */
+  .legend {
+    background: rgba(0,0,0,0.75); padding: 8px 12px;
+    border-radius: 6px; color: #ddd; font-size: 11px; line-height: 22px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 7px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.3); }
+</style>
+</head>
+<body>
+<div id="container">
+  <div id="header">
+    ⚓ Major PLAN Bases
+    <span>People's Liberation Army Navy — Theater Commands</span>
+  </div>
+  <div id="map"></div>
+</div>
+<script>
+// =============================================================
+// ✏️ EDIT THIS SECTION TO UPDATE BASE DATA
+//
+// theater options: "NTN" | "ETN" | "STN" | "SCS"
+// ships, submarines, aircraft, personnel: fill in numbers
+// url: add a link when ready
+// =============================================================
+const BASES = [
+
+  // ── NORTHERN THEATER NAVY (NTN) ──────────────────────────
+  {
+    lat: 40.7200, lng: 120.9700,
+    name: "Huludao",
+    theater: "Northern Theater Navy (NTN)",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "",
+    url: ""
+  },
+  {
+    lat: 38.8500, lng: 121.2600,
+    name: "Lushun",
+    theater: "Northern Theater Navy (NTN)",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "",
+    url: ""
+  },
+  {
+    lat: 38.9800, lng: 121.4500,
+    name: "Xiaopingdao",
+    theater: "Northern Theater Navy (NTN)",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "",
+    url: ""
+  },
+  {
+    lat: 36.0671, lng: 120.3826,
+    name: "Qingdao (NTN HQ)",
+    theater: "Northern Theater Navy (NTN) — Headquarters",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "",
+    url: ""
+  },
+  {
+    lat: 36.1500, lng: 120.6300,
+    name: "Jianggezhuang",
+    theater: "Northern Theater Navy (NTN)",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "",
+    url: ""
+  },
+  {
+    lat: 36.0000, lng: 120.2000,
+    name: "Yuchi",
+    theater: "Northern Theater Navy (NTN)",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "",
+    url: ""
+  },
+
+  // ── EASTERN THEATER NAVY (ETN) ───────────────────────────
+  {
+    lat: 31.2304, lng: 121.4737,
+    name: "Shanghai",
+    theater: "Eastern Theater Navy (ETN)",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "",
+    url: ""
+  },
+  {
+    lat: 30.0160, lng: 122.1060,
+    name: "Zhoushan",
+    theater: "Eastern Theater Navy (ETN)",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "",
+    url: ""
+  },
+  {
+    lat: 29.9900, lng: 122.2200,
+    name: "Dinghai",
+    theater: "Eastern Theater Navy (ETN)",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "",
+    url: ""
+  },
+  {
+    lat: 29.8683, lng: 121.5440,
+    name: "Ningbo (ETN HQ)",
+    theater: "Eastern Theater Navy (ETN) — Headquarters",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "",
+    url: ""
+  },
+  {
+    lat: 29.9500, lng: 122.3000,
+    name: "Daxie Dao",
+    theater: "Eastern Theater Navy (ETN)",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "",
+    url: ""
+  },
+  {
+    lat: 26.9000, lng: 119.7000,
+    name: "Sandu",
+    theater: "Eastern Theater Navy (ETN)",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "",
+    url: ""
+  },
+
+  // ── SOUTHERN THEATER NAVY (STN) ──────────────────────────
+  {
+    lat: 23.3500, lng: 116.6800,
+    name: "Shantou",
+    theater: "Southern Theater Navy (STN)",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "",
+    url: ""
+  },
+  {
+    lat: 21.2707, lng: 110.3594,
+    name: "Zhanjiang (STN HQ)",
+    theater: "Southern Theater Navy (STN) — Headquarters",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "",
+    url: ""
+  },
+  {
+    lat: 21.8000, lng: 112.5500,
+    name: "Xiachuan Dao",
+    theater: "Southern Theater Navy (STN)",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "",
+    url: ""
+  },
+  {
+    lat: 18.2200, lng: 109.5000,
+    name: "Yulin",
+    theater: "Southern Theater Navy (STN)",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "Major submarine base on Hainan Island.",
+    url: ""
+  },
+  {
+    lat: 18.2400, lng: 109.5800,
+    name: "Yalong",
+    theater: "Southern Theater Navy (STN)",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "",
+    url: ""
+  },
+
+  // ── SOUTH CHINA SEA ISLANDS ───────────────────────────────
+  {
+    lat: 16.8400, lng: 112.3400,
+    name: "Woody Island",
+    theater: "South China Sea — Paracel Islands",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "Largest Chinese-controlled island in the Paracels.",
+    url: ""
+  },
+  {
+    lat: 10.9200, lng: 114.0800,
+    name: "Subi Reef",
+    theater: "South China Sea — Spratly Islands",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "Artificial island with airstrip and port facilities.",
+    url: ""
+  },
+  {
+    lat: 9.5500, lng: 112.8900,
+    name: "Fiery Cross Reef",
+    theater: "South China Sea — Spratly Islands",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "Major artificial island with airstrip, port and military facilities.",
+    url: ""
+  },
+  {
+    lat: 9.9100, lng: 115.5400,
+    name: "Mischief Reef",
+    theater: "South China Sea — Spratly Islands",
+    ships: "", submarines: "", aircraft: "", personnel: "",
+    detail: "Artificial island close to the Philippines EEZ.",
+    url: ""
+  }
+];
+// =============================================================
+// END OF EDITABLE SECTION
+// =============================================================
+
+const THEATER_COLORS = {
+  "NTN": "#4a90d9",
+  "ETN": "#e8a838",
+  "STN": "#e84040",
+  "SCS": "#9b59b6"
+};
+
+function theaterColor(theater) {
+  if (theater.includes("NTN")) return THEATER_COLORS.NTN;
+  if (theater.includes("ETN")) return THEATER_COLORS.ETN;
+  if (theater.includes("STN")) return THEATER_COLORS.STN;
+  return THEATER_COLORS.SCS;
+}
+
+const lats = BASES.map(b => b.lat);
+const lngs = BASES.map(b => b.lng);
+const bounds = [[Math.min(...lats)-2, Math.min(...lngs)-2], [Math.max(...lats)+2, Math.max(...lngs)+2]];
+
+const map = L.map('map', {
+  zoomControl: true,
+  attributionControl: true
+}).fitBounds(bounds);
+
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  crossOrigin: true
+}).addTo(map);
+
+BASES.forEach(base => {
+  const color = theaterColor(base.theater);
+  const isHQ = base.name.includes("HQ");
+
+  const marker = L.circleMarker([base.lat, base.lng], {
+    radius: isHQ ? 10 : 7,
+    color: '#fff',
+    fillColor: color,
+    fillOpacity: 1,
+    weight: isHQ ? 3 : 2
+  }).addTo(map);
+
+  L.circleMarker([base.lat, base.lng], {
+    radius: isHQ ? 18 : 13,
+    color: color, fillOpacity: 0, weight: 1, opacity: 0.4,
+    interactive: false
+  }).addTo(map);
+
+  L.marker([base.lat, base.lng], {
+    icon: L.divIcon({
+      className: '',
+      html: `<div style="color:#fff;font-weight:bold;font-size:10px;white-space:nowrap;
+             text-shadow:1px 1px 3px #000,-1px -1px 3px #000;
+             padding-left:12px;margin-top:-7px">${base.name}</div>`,
+      iconAnchor: [0, 0]
+    }),
+    interactive: false
+  }).addTo(map);
+
+  marker.bindPopup(`
+    <div class="popup-title">${base.name}</div>
+    <div class="popup-theater">${base.theater}</div>
+    <div class="popup-grid">
+      <div class="popup-stat">
+        <div class="popup-stat-value">${base.ships || '—'}</div>
+        <div class="popup-stat-label">⚓ Ships</div>
+      </div>
+      <div class="popup-stat">
+        <div class="popup-stat-value">${base.submarines || '—'}</div>
+        <div class="popup-stat-label">🤿 Submarines</div>
+      </div>
+      <div class="popup-stat">
+        <div class="popup-stat-value">${base.aircraft || '—'}</div>
+        <div class="popup-stat-label">✈ Aircraft</div>
+      </div>
+      <div class="popup-stat">
+        <div class="popup-stat-value">${base.personnel || '—'}</div>
+        <div class="popup-stat-label">👤 Personnel</div>
+      </div>
+    </div>
+    ${base.detail ? `<div style="font-size:11px;color:#aaa;margin-bottom:6px">${base.detail}</div>` : ''}
+    ${base.url ? `<a class="popup-link" href="${base.url}" target="_blank">Read More →</a>` : ''}
+  `, { maxWidth: 260 });
+});
+
+// USNI News logo
+const logo = L.control({ position: 'bottomleft' });
+logo.onAdd = () => {
+  const d = L.DomUtil.create('div');
+  d.style.cssText = 'padding:4px 6px;background:rgba(0,0,0,0.6);border-radius:4px;';
+  d.innerHTML = '<img src="https://news.usni.org/wp-content/uploads/2016/02/usni_logo.png" style="height:28px;display:block;">';
+  return d;
+};
+logo.addTo(map);
+
+// Legend
+const legend = L.control({ position: 'bottomright' });
+legend.onAdd = () => {
+  const d = L.DomUtil.create('div', 'legend');
+  d.innerHTML = [
+    { color: THEATER_COLORS.NTN, label: "Northern Theater Navy (NTN)" },
+    { color: THEATER_COLORS.ETN, label: "Eastern Theater Navy (ETN)" },
+    { color: THEATER_COLORS.STN, label: "Southern Theater Navy (STN)" },
+    { color: THEATER_COLORS.SCS, label: "South China Sea Islands" }
+  ].map(item => `
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${item.color}"></div>
+      ${item.label}
+    </div>
+  `).join('');
+  return d;
+};
+legend.addTo(map);
+</script>
+</body>
+</html>
