@@ -59,14 +59,12 @@ const LOCATIONS = [
   }
 ];
 
-const lats = LOCATIONS.map(l => l.lat);
-const lngs = LOCATIONS.map(l => l.lng);
-const bounds = [[Math.min(...lats)-2, Math.min(...lngs)-2], [Math.max(...lats)+2, Math.max(...lngs)+2]];
-
 const map = L.map('map', {
+  center: [13.0, 122.5],
+  zoom: 6,
   zoomControl: true,
   attributionControl: true
-}).fitBounds(bounds);
+});
 
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
