@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strait of Hormuz — Vessel Traffic Map</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; font-family: Arial, sans-serif; background: #111; }
+  #container { display: flex; flex-direction: column; width: 100%; height: 100vh; }
+  #header {
+    background: rgba(0,0,0,0.85); color: #f0e0c0;
+    padding: 8px 14px; font-size: 14px; font-weight: bold;
+    letter-spacing: 0.5px; border-bottom: 1px solid #444; flex-shrink: 0;
+  }
+  #header span { font-size: 11px; font-weight: normal; color: #aaa; margin-left: 10px; }
+  #map { flex: 1; width: 100%; min-height: 0; }
+  .leaflet-container { background: #1a2a3a; }
+  .leaflet-popup-content-wrapper {
+    background: rgba(20,20,30,0.95); color: #eee;
+    border: 1px solid #555; border-radius: 6px; box-shadow: 0 2px 12px rgba(0,0,0,0.6);
+  }
+  .leaflet-popup-tip { background: rgba(20,20,30,0.95); }
+  .leaflet-popup-content { margin: 10px 14px; font-size: 12px; line-height: 1.6; }
+  .popup-title { font-weight: bold; font-size: 13px; margin-bottom: 4px; color: #f0e0c0; }
+  .legend {
+    background: rgba(0,0,0,0.75); padding: 8px 12px;
+    border-radius: 6px; color: #ddd; font-size: 11px; line-height: 22px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 7px; }
+  .legend-line { width: 24px; height: 3px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div id="container">
+  <div id="header">
+    🚢 Strait of Hormuz — Vessel Traffic Map
+    <span>Iranian-Designated Traffic Separation Scheme</span>
+  </div>
+  <div id="map"></div>
+</div>
+<script>
+
+const map = L.map('map', {
+  center: [26.45, 56.55],
+  zoom: 9,
+  zoomControl: true,
+  attributionControl: true
+});
+
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  crossOrigin: true
+}).addTo(map);
+
+// ── HAZARDOUS AREA (red box) ──────────────────────────────────
+// Corners from Iranian chart:
+// A (NW): 26°40'00"N, 056°20'00"E
+// B (NE): 26°40'00"N, 056°40'00"E
+// C (SE): 26°25'00"N, 056°40'00"E
+// D (SW): 26°25'00"N, 056°20'00"E
+const hazardousArea = L.polygon([
+  [26.6667, 56.3333], // A - NW
+  [26.6667, 56.6667], // B - NE
+  [26.4167, 56.6667], // C - SE
+  [26.4167, 56.3333], // D - SW
+], {
+  color: '#ff3333',
+  weight: 2.5,
+  fillColor: '#ff3333',
+  fillOpacity: 0.15,
+  dashArray: '6 3'
+}).addTo(map);
+
+hazardousArea.bindPopup(`
+  <div class="popup-title" style="color:#ff4444">⚠ Hazardous Area</div>
+  <div><strong>Restricted for all traffic</strong></div>
+  <div style="margin-top:6px;font-size:11px;color:#aaa">
+    <div>A (NW): 26°40'00"N, 056°20'00"E</div>
+    <div>B (NE): 26°40'00"N, 056°40'00"E</div>
+    <div>C (SE): 26°25'00"N, 056°40'00"E</div>
+    <div>D (SW): 26°25'00"N, 056°20'00"E</div>
+  </div>
+  <div style="margin-top:6px;font-size:11px;color:#aaa">Firing practice area designated by Iranian authorities. Restricted for all vessel traffic.</div>
+`, { maxWidth: 260 });
+
+// Corner labels
+const corners = [
+  { lat: 26.6667, lng: 56.3333, label: 'A' },
+  { lat: 26.6667, lng: 56.6667, label: 'B' },
+  { lat: 26.4167, lng: 56.6667, label: 'C' },
+  { lat: 26.4167, lng: 56.3333, label: 'D' },
+];
+corners.forEach(c => {
+  L.marker([c.lat, c.lng], {
+    icon: L.divIcon({
+      className: '',
+      html: `<div style="background:#ff3333;color:#fff;font-weight:bold;font-size:10px;
+             width:18px;height:18px;border-radius:3px;display:flex;align-items:center;
+             justify-content:center;border:1px solid #fff;">${c.label}</div>`,
+      iconAnchor: [9, 9]
+    }),
+    interactive: false
+  }).addTo(map);
+});
+
+// ── INBOUND LANE (to Persian Gulf) ───────────────────────────
+// Runs NE to SW along northern side of strait
+const inboundLane = L.polyline([
+  [26.9000, 57.3000], // entry from Gulf of Oman NE
+  [26.7500, 57.0000],
+  [26.6500, 56.7000],
+  [26.5500, 56.3000],
+  [26.4500, 56.0000],
+  [26.3500, 55.6000],
+  [26.2500, 55.2000], // into Persian Gulf
+], {
+  color: '#00cc88',
+  weight: 4,
+  opacity: 0.85
+}).addTo(map);
+
+inboundLane.bindPopup(`
+  <div class="popup-title" style="color:#00cc88">→ Inbound Lane</div>
+  <div>Traffic Separation Scheme — Inbound to Persian Gulf</div>
+  <div style="margin-top:4px;font-size:11px;color:#aaa">Designated inbound vessel traffic lane per Iranian nautical chart.</div>
+`);
+
+// Inbound arrow label
+L.marker([26.65, 56.85], {
+  icon: L.divIcon({
+    className: '',
+    html: `<div style="color:#00cc88;font-weight:bold;font-size:10px;white-space:nowrap;
+           text-shadow:1px 1px 3px #000,-1px 1px 3px #000;">→ INBOUND LANE<br><span style="font-size:9px;font-weight:normal;">(to Persian Gulf)</span></div>`,
+    iconAnchor: [0, 0]
+  }),
+  interactive: false
+}).addTo(map);
+
+// ── OUTBOUND LANE (from Persian Gulf) ────────────────────────
+// Runs SW to NE along southern side of strait
+const outboundLane = L.polyline([
+  [26.2000, 55.2000], // from Persian Gulf
+  [26.3000, 55.6000],
+  [26.3500, 56.0000],
+  [26.4000, 56.3000],
+  [26.4500, 56.6000],
+  [26.5500, 56.9000],
+  [26.6500, 57.2000], // exit to Gulf of Oman
+], {
+  color: '#4a90d9',
+  weight: 4,
+  opacity: 0.85
+}).addTo(map);
+
+outboundLane.bindPopup(`
+  <div class="popup-title" style="color:#4a90d9">← Outbound Lane</div>
+  <div>Traffic Separation Scheme — Outbound from Persian Gulf</div>
+  <div style="margin-top:4px;font-size:11px;color:#aaa">Designated outbound vessel traffic lane per Iranian nautical chart.</div>
+`);
+
+// Outbound arrow label
+L.marker([26.38, 56.55], {
+  icon: L.divIcon({
+    className: '',
+    html: `<div style="color:#4a90d9;font-weight:bold;font-size:10px;white-space:nowrap;
+           text-shadow:1px 1px 3px #000,-1px 1px 3px #000;">← OUTBOUND LANE<br><span style="font-size:9px;font-weight:normal;">(from Persian Gulf)</span></div>`,
+    iconAnchor: [0, 0]
+  }),
+  interactive: false
+}).addTo(map);
+
+// ── OLD IMO TRAFFIC SEPARATION SCHEME (toggleable) ───────────
+// Based on previous IMO-designated lanes near Larak Island
+const oldInbound = L.polyline([
+  [26.8500, 57.1000], // entry from Gulf of Oman
+  [26.7500, 56.8500],
+  [26.6800, 56.6000],
+  [26.6200, 56.3500],
+  [26.5800, 56.1000],
+], {
+  color: '#ff00ff',
+  weight: 3,
+  opacity: 0.8,
+  dashArray: '8 4'
+});
+
+const oldOutbound = L.polyline([
+  [26.5200, 56.1000],
+  [26.5600, 56.3500],
+  [26.6000, 56.6000],
+  [26.6800, 56.8500],
+  [26.7800, 57.1000],
+], {
+  color: '#ff88ff',
+  weight: 3,
+  opacity: 0.8,
+  dashArray: '8 4'
+});
+
+const oldSeparationZone = L.polyline([
+  [26.8000, 57.1000],
+  [26.7000, 56.8500],
+  [26.6400, 56.6000],
+  [26.5900, 56.3500],
+  [26.5500, 56.1000],
+], {
+  color: '#ffaaff',
+  weight: 1.5,
+  opacity: 0.7,
+  dashArray: '4 4'
+});
+
+// Toggle control
+const toggleControl = L.control({ position: 'topleft' });
+toggleControl.onAdd = () => {
+  const d = L.DomUtil.create('div');
+  d.style.cssText = 'background:rgba(0,0,0,0.75);padding:8px 10px;border-radius:6px;font-family:Arial;font-size:11px;color:#ddd;display:flex;flex-direction:column;gap:6px;';
+
+  const toggles = [
+    { label: '🟣 Previous IMO Lanes', layers: [oldInbound, oldOutbound, oldSeparationZone], color: '#ff00ff', key: 'old' }
+  ];
+
+  const state = { old: false };
+
+  toggles.forEach(({ label, layers, color, key }) => {
+    const btn = L.DomUtil.create('button', '', d);
+    btn.innerHTML = label;
+    btn.style.cssText = `background:rgba(255,255,255,0.08);border:1px solid #444;color:#ddd;
+      padding:4px 8px;border-radius:4px;cursor:pointer;text-align:left;font-size:11px;`;
+    L.DomEvent.on(btn, 'click', () => {
+      state[key] = !state[key];
+      layers.forEach(layer => {
+        if (state[key]) layer.addTo(map);
+        else map.removeLayer(layer);
+      });
+      btn.style.background = state[key] ? color + '33' : 'rgba(255,255,255,0.08)';
+      btn.style.borderColor = state[key] ? color : '#444';
+    });
+    L.DomEvent.disableClickPropagation(d);
+  });
+
+  return d;
+};
+toggleControl.addTo(map);
+
+// ── USNI NEWS LOGO ────────────────────────────────────────────
+const logo = L.control({ position: 'bottomleft' });
+logo.onAdd = () => {
+  const d = L.DomUtil.create('div');
+  d.style.cssText = 'padding:4px 6px;background:rgba(0,0,0,0.6);border-radius:4px;';
+  d.innerHTML = '<img src="https://news.usni.org/wp-content/uploads/2016/02/usni_logo.png" style="height:28px;display:block;">';
+  return d;
+};
+logo.addTo(map);
+
+// ── LEGEND ────────────────────────────────────────────────────
+const legend = L.control({ position: 'bottomright' });
+legend.onAdd = () => {
+  const d = L.DomUtil.create('div', 'legend');
+  d.innerHTML = `
+    <div class="legend-item"><div class="legend-line" style="background:#00cc88"></div>Inbound Lane (to Persian Gulf)</div>
+    <div class="legend-item"><div class="legend-line" style="background:#4a90d9"></div>Outbound Lane (from Persian Gulf)</div>
+    <div class="legend-item"><div class="legend-line" style="background:#ff3333"></div>Hazardous Area — Restricted</div>
+    <div class="legend-item"><div class="legend-line" style="background:#ff00ff;border-top:2px dashed #ff00ff"></div>Previous IMO Lanes (toggle)</div>
+  `;
+  return d;
+};
+legend.addTo(map);
+
+</script>
+</body>
+</html>
