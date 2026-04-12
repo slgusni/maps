@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photo Gallery</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #C8A96E;
+    --dark: #1a1a1a;
+    --card-gap: 16px;
+  }
+
+  body {
+    background: var(--dark);
+    font-family: 'DM Sans', sans-serif;
+    color: #fff;
+    overflow-x: hidden;
+    padding: 1.5rem 0 2rem;
+  }
+
+  .track-wrapper { position: relative; }
+
+  .track-wrapper::before,
+  .track-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 40px;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .track-wrapper::before { left: 0; background: linear-gradient(to right, var(--dark), transparent); }
+  .track-wrapper::after  { right: 0; background: linear-gradient(to left,  var(--dark), transparent); }
+
+  .track {
+    display: flex;
+    gap: var(--card-gap);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0.5rem 1.5rem 1rem;
+    cursor: grab;
+    align-items: flex-start;
+  }
+
+  .track:active { cursor: grabbing; }
+  .track::-webkit-scrollbar { display: none; }
+
+  /* Card is fluid: 45vw on large screens, clamped sensibly */
+  .card {
+    flex: 0 0 clamp(260px, 45vw, 520px);
+    scroll-snap-align: start;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.3s ease;
+  }
+
+  .card:hover { transform: translateY(-4px); }
+
+  /* Aspect ratio drives the height responsively */
+  .card-img-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+  }
+
+  .card-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s ease;
+  }
+
+  .card:hover .card-img-wrap img { transform: scale(1.04); }
+
+  .card-num {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: #fff;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(6px);
+    padding: 3px 9px;
+    border-radius: 20px;
+    z-index: 1;
+  }
+
+  .info-btn {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.6);
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(6px);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 400;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s, background 0.2s;
+    z-index: 3;
+    font-family: Georgia, serif;
+    font-style: italic;
+    line-height: 1;
+  }
+
+  .info-btn:hover {
+    border-color: var(--accent);
+    background: rgba(0,0,0,0.6);
+  }
+
+  /* Caption sits at the bottom, height = text height only */
+  .caption-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(4px);
+    padding: 0.9rem 1rem 0.9rem 1rem;
+    transform: translateY(100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    z-index: 2;
+  }
+
+  .caption-overlay.visible {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .caption-text {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.88);
+    line-height: 1.65;
+    font-weight: 300;
+    padding-right: 28px; /* room for close btn */
+  }
+
+  .caption-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .caption-close:hover { border-color: rgba(255,255,255,0.8); color: #fff; }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 0.9rem 1.5rem 0;
+  }
+
+  .nav-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid #333;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s, background 0.2s;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  .nav-btn:hover {
+    border-color: var(--accent);
+    background: rgba(200,169,110,0.1);
+  }
+
+  @media (max-width: 480px) {
+    .card { flex: 0 0 88vw; }
+    .track { padding: 0.5rem 1rem 1rem; }
+    .controls { padding: 0.9rem 1rem 0; }
+    .caption-text { font-size: 0.75rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="track-wrapper">
+  <div class="track" id="track">
+
+    <div class="card">
+      <div class="card-img-wrap">
+        <img src="https://i.ibb.co/fzsK4dGB/9609114.jpg" alt="Navy divers conduct hazardous material detection sweep">
+        <span class="card-num">01 / 06</span>
+        <button class="info-btn" aria-label="Show caption">i</button>
+        <div class="caption-overlay">
+          <button class="caption-close" aria-label="Close">&#215;</button>
+          <p class="caption-text">Navy divers, attached to Explosive Ordnance Disposal Group (EODGRU) 1, prepare to conduct a hazardous material detection sweep of the Artemis II crew module after its return from its lunar mission on April 10, 2026. US Navy photo</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-img-wrap">
+        <img src="https://i.ibb.co/tMPybPsX/9609077.jpg" alt="NASA Astronaut Reid Wiseman exits Orion crew module">
+        <span class="card-num">02 / 06</span>
+        <button class="info-btn" aria-label="Show caption">i</button>
+        <div class="caption-overlay">
+          <button class="caption-close" aria-label="Close">&#215;</button>
+          <p class="caption-text">NASA Astronaut Reid Wiseman, Artemis II mission commander, exits the Orion crew module onto the front porch before transiting to amphibious transport dock ship USS John P. Murtha (LPD-26), April 10, 2026. US Navy photo</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-img-wrap">
+        <img src="https://i.ibb.co/RJ30V11/9608792.jpg" alt="Patch on helmet of U.S. Navy diver">
+        <span class="card-num">03 / 06</span>
+        <button class="info-btn" aria-label="Show caption">i</button>
+        <div class="caption-overlay">
+          <button class="caption-close" aria-label="Close">&#215;</button>
+          <p class="caption-text">A patch sits on the helmet of a U.S. Navy diver in the well deck of amphibious transport dock ship USS John P. Murtha (LPD-26) before recovering the Orion spacecraft on April 10, 2026. US Navy photo</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-img-wrap">
+        <img src="https://i.ibb.co/GfqBFV8d/9609053.jpg" alt="Navy divers return to well deck after recovering Orion">
+        <span class="card-num">04 / 06</span>
+        <button class="info-btn" aria-label="Show caption">i</button>
+        <div class="caption-overlay">
+          <button class="caption-close" aria-label="Close">&#215;</button>
+          <p class="caption-text">Navy divers return to the well deck of the amphibious transport dock ship USS John P. Murtha (LPD-26) after recovering the Orion spacecraft on April 10, 2026. US Navy photo</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-img-wrap">
+        <img src="https://i.ibb.co/TBgFz4SP/9609159.jpg" alt="Sailors and divers recover Orion crew module">
+        <span class="card-num">05 / 06</span>
+        <button class="info-btn" aria-label="Show caption">i</button>
+        <div class="caption-overlay">
+          <button class="caption-close" aria-label="Close">&#215;</button>
+          <p class="caption-text">Sailors assigned to amphibious transport dock ship USS John P. Murtha (LPD 26) alongside divers assigned to Explosive Ordnance Disposal Group 1, and NASA engineers recover the Orion crew module, April 10, 2026. US Navy photo</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-img-wrap">
+        <img src="https://i.ibb.co/TDx4SZ9N/9609058.jpg" alt="NASA Orion spacecraft winched into well deck">
+        <span class="card-num">06 / 06</span>
+        <button class="info-btn" aria-label="Show caption">i</button>
+        <div class="caption-overlay">
+          <button class="caption-close" aria-label="Close">&#215;</button>
+          <p class="caption-text">NASA Orion spacecraft is winched into the well deck of the amphibious transport dock ship USS John P. Murtha (LPD-26) after returning from the Artemis II lunar mission on April 10, 2026. US Navy photo</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="controls">
+  <button class="nav-btn" id="prev" aria-label="Previous">&#8592;</button>
+  <button class="nav-btn" id="next" aria-label="Next">&#8594;</button>
+</div>
+
+<script>
+  const track = document.getElementById('track');
+  const cards = Array.from(track.querySelectorAll('.card'));
+  const total = cards.length;
+  let isDragging = false, startX = 0, scrollStart = 0, dragMoved = false;
+
+  function scrollToCard(idx) {
+    const card = cards[idx];
+    track.scrollTo({ left: card.offsetLeft - parseInt(getComputedStyle(track).paddingLeft), behavior: 'smooth' });
+  }
+
+  document.getElementById('prev').addEventListener('click', () => {
+    const cardW = cards[0].offsetWidth + 16;
+    scrollToCard(Math.max(0, Math.round(track.scrollLeft / cardW) - 1));
+  });
+
+  document.getElementById('next').addEventListener('click', () => {
+    const cardW = cards[0].offsetWidth + 16;
+    scrollToCard(Math.min(total - 1, Math.round(track.scrollLeft / cardW) + 1));
+  });
+
+  track.addEventListener('mousedown', e => {
+    isDragging = true; dragMoved = false;
+    startX = e.pageX; scrollStart = track.scrollLeft;
+    track.style.scrollSnapType = 'none';
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    const dx = e.pageX - startX;
+    if (Math.abs(dx) > 4) dragMoved = true;
+    track.scrollLeft = scrollStart - dx;
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    track.style.scrollSnapType = 'x mandatory';
+  });
+
+  cards.forEach(card => {
+    const btn = card.querySelector('.info-btn');
+    const overlay = card.querySelector('.caption-overlay');
+    const closeBtn = card.querySelector('.caption-close');
+
+    btn.addEventListener('click', e => {
+      if (dragMoved) return;
+      e.stopPropagation();
+      document.querySelectorAll('.caption-overlay.visible').forEach(o => {
+        if (o !== overlay) o.classList.remove('visible');
+      });
+      overlay.classList.toggle('visible');
+    });
+
+    closeBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      overlay.classList.remove('visible');
+    });
+  });
+</script>
+</body>
+</html>
