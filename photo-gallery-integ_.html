@@ -20,10 +20,17 @@
     font-family: 'DM Sans', sans-serif;
     color: #fff;
     overflow-x: hidden;
-    padding: 1rem 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 
-  .track-wrapper { position: relative; }
+  .track-wrapper { 
+    position: relative;
+    flex: 1;
+    min-height: 0;
+  }
 
   .track-wrapper::before,
   .track-wrapper::after {
@@ -45,29 +52,31 @@
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    padding: 0.5rem 1.5rem 1rem;
+    padding: 0;
     cursor: grab;
-    align-items: flex-start;
+    align-items: stretch;
+    height: 100%;
   }
 
   .track:active { cursor: grabbing; }
   .track::-webkit-scrollbar { display: none; }
 
   .card {
-    flex: 0 0 clamp(280px, 70vw, 680px);
+    flex: 0 0 100%;
     scroll-snap-align: start;
-    border-radius: 10px;
+    border-radius: 0;
     overflow: hidden;
     position: relative;
     transition: transform 0.3s ease;
+    height: 100%;
   }
 
-  .card:hover { transform: translateY(-4px); }
+  .card:hover { transform: none; }
 
   .card-img-wrap {
     position: relative;
     width: 100%;
-    aspect-ratio: 3 / 2;
+    height: 100%;
     overflow: hidden;
   }
 
