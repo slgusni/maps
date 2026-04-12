@@ -20,7 +20,7 @@
     font-family: 'DM Sans', sans-serif;
     color: #fff;
     overflow-x: hidden;
-    padding: 1.5rem 0 2rem;
+    padding: 1rem 0;
   }
 
   .track-wrapper { position: relative; }
@@ -53,9 +53,8 @@
   .track:active { cursor: grabbing; }
   .track::-webkit-scrollbar { display: none; }
 
-  /* Card is fluid: 45vw on large screens, clamped sensibly */
   .card {
-    flex: 0 0 clamp(260px, 45vw, 520px);
+    flex: 0 0 clamp(280px, 70vw, 680px);
     scroll-snap-align: start;
     border-radius: 10px;
     overflow: hidden;
@@ -65,11 +64,10 @@
 
   .card:hover { transform: translateY(-4px); }
 
-  /* Aspect ratio drives the height responsively */
   .card-img-wrap {
     position: relative;
     width: 100%;
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 3 / 2;
     overflow: hidden;
   }
 
@@ -110,7 +108,6 @@
     backdrop-filter: blur(6px);
     color: #fff;
     font-size: 15px;
-    font-weight: 400;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -127,15 +124,14 @@
     background: rgba(0,0,0,0.6);
   }
 
-  /* Caption sits at the bottom, height = text height only */
   .caption-overlay {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(0,0,0,0.75);
+    background: rgba(0,0,0,0.78);
     backdrop-filter: blur(4px);
-    padding: 0.9rem 1rem 0.9rem 1rem;
+    padding: 0.9rem 1rem;
     transform: translateY(100%);
     opacity: 0;
     pointer-events: none;
@@ -150,11 +146,11 @@
   }
 
   .caption-text {
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     color: rgba(255,255,255,0.88);
     line-height: 1.65;
     font-weight: 300;
-    padding-right: 28px; /* room for close btn */
+    padding-right: 28px;
   }
 
   .caption-close {
@@ -174,7 +170,6 @@
     justify-content: center;
     transition: border-color 0.2s;
     line-height: 1;
-    flex-shrink: 0;
   }
 
   .caption-close:hover { border-color: rgba(255,255,255,0.8); color: #fff; }
@@ -184,7 +179,7 @@
     align-items: center;
     justify-content: center;
     gap: 12px;
-    padding: 0.9rem 1.5rem 0;
+    padding: 0.8rem 1.5rem 0;
   }
 
   .nav-btn {
@@ -200,7 +195,6 @@
     justify-content: center;
     transition: border-color 0.2s, background 0.2s;
     font-size: 15px;
-    flex-shrink: 0;
   }
 
   .nav-btn:hover {
@@ -211,8 +205,7 @@
   @media (max-width: 480px) {
     .card { flex: 0 0 88vw; }
     .track { padding: 0.5rem 1rem 1rem; }
-    .controls { padding: 0.9rem 1rem 0; }
-    .caption-text { font-size: 0.75rem; }
+    .controls { padding: 0.8rem 1rem 0; }
   }
 </style>
 </head>
