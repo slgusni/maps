@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Allied Naval Shipyards — South Korea & Japan</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; font-family: Arial, sans-serif; background: #111; }
+  #container { display: flex; flex-direction: column; width: 100%; height: 100vh; }
+  #header {
+    background: rgba(0,0,0,0.85); color: #f0e0c0;
+    padding: 8px 14px; font-size: 14px; font-weight: bold;
+    letter-spacing: 0.5px; border-bottom: 1px solid #444; flex-shrink: 0;
+  }
+  #header span { font-size: 11px; font-weight: normal; color: #aaa; margin-left: 10px; }
+  #map { flex: 1; width: 100%; min-height: 0; }
+  .leaflet-container { background: #1a2a3a; }
+
+  .leaflet-popup-content-wrapper {
+    background: rgba(15,15,25,0.97); color: #eee;
+    border: 1px solid #555; border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+  }
+  .leaflet-popup-tip { background: rgba(15,15,25,0.97); }
+  .leaflet-popup-content { margin: 12px 16px; font-size: 12px; line-height: 1.6; min-width: 220px; }
+
+  .popup-company { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .popup-title { font-weight: bold; font-size: 13px; color: #f0e0c0; margin-bottom: 8px; }
+  .popup-ships { margin: 0; padding: 0; list-style: none; }
+  .popup-ships li {
+    font-size: 11px; color: #ccc; padding: 3px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .popup-ships li:last-child { border-bottom: none; }
+  .ship-class { color: #f0e0c0; font-weight: 500; }
+
+  .legend {
+    background: rgba(0,0,0,0.75); padding: 8px 12px;
+    border-radius: 6px; color: #ddd; font-size: 11px; line-height: 22px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 7px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.3); }
+</style>
+</head>
+<body>
+<div id="container">
+  <div id="header">
+    ⚓ Allied Naval Shipyards
+    <span>South Korea &amp; Japan — Warship Production</span>
+  </div>
+  <div id="map"></div>
+</div>
+<script>
+const SHIPYARDS = [
+
+  // ── SOUTH KOREA ──────────────────────────────────────────────
+  {
+    lat: 35.5167, lng: 129.4380,
+    name: "Hyundai Heavy Industries — Ulsan Shipyard",
+    company: "Hyundai Heavy Industries (HHI)",
+    country: "South Korea",
+    ships: [
+      "Sejong the Great-class DDG",
+      "Chungmugong Yi Sunshin-class DDG",
+      "Chungnam-class FFG",
+      "Daegu-class FFG",
+      "Incheon-class FFG",
+      "Jose Rizal-class FF",
+      "Miguel Malvar-class FFG"
+    ]
+  },
+  {
+    lat: 34.8722, lng: 128.6957,
+    name: "Hanwha Ocean — Geoje Shipyard",
+    company: "Hanwha Ocean (formerly DSME)",
+    country: "South Korea",
+    ships: [
+      "Sejong the Great-class DDG",
+      "Chungmugong Yi Sunshin-class DDG",
+      "Kwanggaeto the Great-class DDG",
+      "Daegu-class FFG"
+    ]
+  },
+  {
+    lat: 34.9936, lng: 128.4617,
+    name: "SK Oceanplant — Goseong Shipyard",
+    company: "SK Oceanplant",
+    country: "South Korea",
+    ships: [
+      "Chungnam-class FFG",
+      "Incheon-class FFG"
+    ]
+  },
+
+  // ── JAPAN — JAPAN MARINE UNITED ──────────────────────────────
+  {
+    lat: 34.6792, lng: 136.5422,
+    name: "Japan Marine United — Tsu Shipyard",
+    company: "Japan Marine United (JMU)",
+    country: "Japan",
+    ships: [
+      "Kongō-class DDG"
+    ]
+  },
+  {
+    lat: 35.3929, lng: 139.6286,
+    name: "Japan Marine United — Yokohama Shipyard (Isogo)",
+    company: "Japan Marine United (JMU)",
+    country: "Japan",
+    ships: [
+      "Maya-class DDG",
+      "Takanami-class DD"
+    ]
+  },
+  {
+    lat: 35.2452, lng: 139.7164,
+    name: "Japan Marine United — Uraga Shipyard",
+    company: "Japan Marine United (JMU)",
+    country: "Japan",
+    ships: [
+      "Takanami-class DD"
+    ]
+  },
+
+  // ── JAPAN — MITSUBISHI HEAVY INDUSTRIES ──────────────────────
+  {
+    lat: 32.7024, lng: 129.8258,
+    name: "Mitsubishi Heavy Industries — Nagasaki Shipyard",
+    company: "Mitsubishi Heavy Industries (MHI)",
+    country: "Japan",
+    ships: [
+      "Kongō-class DDG",
+      "Atago-class DDG",
+      "Takanami-class DD",
+      "Akizuki-class DD",
+      "Asahi-class DD",
+      "Mogami-class FFM"
+    ]
+  },
+  {
+    lat: 34.4754, lng: 133.9335,
+    name: "Mitsubishi Heavy Industries — Tamano Shipyard",
+    company: "Mitsubishi Heavy Industries (MHI)",
+    country: "Japan",
+    ships: [
+      "Akizuki-class DD",
+      "Mogami-class FFM"
+    ]
+  }
+];
+
+const COUNTRY_COLORS = {
+  "South Korea": "#4a90d9",
+  "Japan":       "#e84040"
+};
+
+const lats = SHIPYARDS.map(s => s.lat);
+const lngs = SHIPYARDS.map(s => s.lng);
+const bounds = [[Math.min(...lats)-1, Math.min(...lngs)-2], [Math.max(...lats)+1, Math.max(...lngs)+2]];
+
+const map = L.map('map', {
+  zoomControl: true,
+  attributionControl: true
+}).fitBounds(bounds);
+
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  crossOrigin: true
+}).addTo(map);
+
+SHIPYARDS.forEach(yard => {
+  const color = COUNTRY_COLORS[yard.country];
+
+  const marker = L.circleMarker([yard.lat, yard.lng], {
+    radius: 9,
+    color: '#fff',
+    fillColor: color,
+    fillOpacity: 1,
+    weight: 2
+  }).addTo(map);
+
+  L.circleMarker([yard.lat, yard.lng], {
+    radius: 16, color: color, fillOpacity: 0, weight: 1, opacity: 0.4,
+    interactive: false
+  }).addTo(map);
+
+  L.marker([yard.lat, yard.lng], {
+    icon: L.divIcon({
+      className: '',
+      html: `<div style="color:#fff;font-weight:bold;font-size:10px;white-space:nowrap;
+             text-shadow:1px 1px 3px #000,-1px -1px 3px #000;
+             padding-left:12px;margin-top:-7px">${yard.name.split('—')[1] || yard.name}</div>`,
+      iconAnchor: [0, 0]
+    }),
+    interactive: false
+  }).addTo(map);
+
+  marker.bindPopup(`
+    <div class="popup-company">${yard.company} · ${yard.country}</div>
+    <div class="popup-title">${yard.name}</div>
+    <ul class="popup-ships">
+      ${yard.ships.map(s => `<li>⚓ <span class="ship-class">${s}</span></li>`).join('')}
+    </ul>
+  `, { maxWidth: 280 });
+});
+
+// USNI News logo
+const logo = L.control({ position: 'bottomleft' });
+logo.onAdd = () => {
+  const d = L.DomUtil.create('div');
+  d.style.cssText = 'padding:4px 6px;background:rgba(0,0,0,0.6);border-radius:4px;';
+  d.innerHTML = '<img src="https://news.usni.org/wp-content/uploads/2016/02/usni_logo.png" style="height:28px;display:block;">';
+  return d;
+};
+logo.addTo(map);
+
+// Legend
+const legend = L.control({ position: 'bottomright' });
+legend.onAdd = () => {
+  const d = L.DomUtil.create('div', 'legend');
+  d.innerHTML = `
+    <div class="legend-item"><div class="legend-dot" style="background:#4a90d9"></div>South Korea</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e84040"></div>Japan</div>
+  `;
+  return d;
+};
+legend.addTo(map);
+</script>
+</body>
+</html>
