@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Western Pacific Pulse - May 8, 2026</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"/>
+<style>
+body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+#header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #4a4a4a;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+}
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.header-logo img {
+  height: 40px;
+}
+.header-title {
+  color: white;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.red-bar {
+  height: 4px;
+  background: #c41e3a;
+}
+#map { width: 100%; height: calc(100vh - 230px); margin-top: 60px; }
+#controls { 
+  position: absolute; 
+  bottom: 0; 
+  left: 0; 
+  right: 0; 
+  background: rgba(255,255,255,0.95); 
+  padding: 20px; 
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  z-index: 1000;
+}
+.incident-slider {
+  width: 100%;
+  margin: 15px 0;
+  height: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(to right, #4A90E2 0%, #4A90E2 var(--progress), #ddd var(--progress), #ddd 100%);
+  outline: none;
+  border-radius: 4px;
+}
+.incident-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  background: #4A90E2;
+  cursor: pointer;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.incident-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  background: #4A90E2;
+  cursor: pointer;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.current-date {
+  font-size: 20px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 15px;
+  color: #333;
+}
+.source {
+  position: absolute;
+  bottom: 160px;
+  right: 10px;
+  background: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: #666;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+  z-index: 1000;
+}
+.legend {
+  position: absolute;
+  top: 70px;
+  right: 10px;
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  z-index: 1000;
+  font-size: 12px;
+  max-width: 200px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin: 6px 0;
+}
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+  border: 2px solid rgba(0,0,0,0.3);
+}
+.nav-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 15px;
+}
+.nav-btn {
+  padding: 8px 20px;
+  border: none;
+  background: #4A90E2;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.nav-btn:hover {
+  background: #357ABD;
+}
+.nav-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+</style>
+</head>
+<body>
+<div id="header">
+  <div class="header-top">
+    <div class="header-logo">
+      <!-- Logo will load from same directory as this HTML file -->
+      <img src="USNI_News_Logo.png" alt="USNI News" onerror="this.style.display='none'; this.nextElementSibling.style.marginLeft='0';">
+      <span class="header-title">Western Pacific Pulse</span>
+    </div>
+  </div>
+  <div class="red-bar"></div>
+</div>
+<div id="map"></div>
+<div class="source">Source: JSDF</div>
+<div class="legend">
+  <div style="font-weight: 600; margin-bottom: 8px;">Naval Vessels</div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background: #EE1C25;"></div>
+    <span>PLAN (China)</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background: #4A90E2;"></div>
+    <span>Russian Navy</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background: #FF6B35;"></div>
+    <span>DPRK (North Korea)</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background: #1e3a8a;"></div>
+    <span>US Forces</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background: #10b981;"></div>
+    <span>Baliktan 2026</span>
+  </div>
+</div>
+<div id="controls">
+  <div class="current-date" id="currentDate">
+    <div style="font-size: 20px; font-weight: 600;">March 5-6, 2026</div>
+    <div style="font-size: 14px; color: #666; margin-top: 4px;">Loading...</div>
+  </div>
+  <input type="range" id="incidentSlider" class="incident-slider" min="0" max="10" value="0" step="1">
+  <div class="nav-buttons">
+    <button class="nav-btn" id="prevBtn" onclick="previousIncident()">← Previous</button>
+    <button class="nav-btn" id="nextBtn" onclick="nextIncident()">Next →</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+// Initialize map
+const map = L.map('map').setView([29.0, 127.0], 6);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors',
+  maxZoom: 19
+}).addTo(map);
+
+// Define each incident as individual entry
+const incidents = [
+  {
+    id: 1,
+    date: "Mar 5-6",
+    fullDate: "March 5-6, 2026",
+    vessel: "Russian FFG 335 group",
+    vesselShort: "RU FFG 335, Kilo sub, Balzam",
+    color: "#4A90E2",
+    lat: 34.2,
+    lon: 129.5,
+    location: "Tsushima Strait",
+    direction: "Southbound"
+  },
+  {
+    id: 2,
+    date: "Mar 9",
+    fullDate: "March 9, 2026",
+    vessel: "Russian FFG 335 group",
+    vesselShort: "RU FFG 335, Kilo sub, Balzam",
+    color: "#4A90E2",
+    lat: 24.45,
+    lon: 123.7,
+    location: "Yonaguni-Iriomote Strait",
+    direction: "Southbound"
+  },
+  {
+    id: 3,
+    date: "Mar 30-31",
+    fullDate: "March 30-31, 2026",
+    vessel: "PLAN DDG 119 & 102 group",
+    vesselShort: "PLAN DDG 119, 102 + Fuchi 903",
+    color: "#EE1C25",
+    lat: 34.2,
+    lon: 129.5,
+    location: "Tsushima Strait",
+    direction: "Northbound"
+  },
+  {
+    id: 4,
+    date: "Apr 21",
+    fullDate: "April 21, 2026",
+    vessel: "Russian FFG 335 group",
+    vesselShort: "RU FFG 335, Kilo sub, Balzam",
+    color: "#4A90E2",
+    lat: 24.45,
+    lon: 123.7,
+    location: "Yonaguni-Iriomote Strait",
+    direction: "Northbound"
+  },
+  {
+    id: 5,
+    date: "May 1",
+    fullDate: "May 1, 2026 (11PM)",
+    vessel: "PLAN DDG 119, 120 & 102",
+    vesselShort: "PLAN DDG 119, 120, 102",
+    color: "#EE1C25",
+    lat: 34.0,
+    lon: 129.6,
+    location: "NE of Tsushima",
+    direction: "Southbound"
+  },
+  {
+    id: 6,
+    date: "May 2",
+    fullDate: "May 2, 2026",
+    vessel: "PLAN DDG 119, 120 & 102",
+    vesselShort: "PLAN DDG 119, 120, 102",
+    color: "#EE1C25",
+    lat: 33.8,
+    lon: 129.4,
+    location: "Tsushima Strait",
+    direction: "Southbound"
+  },
+  {
+    id: 7,
+    date: "May 3",
+    fullDate: "May 3, 2026 (Midnight)",
+    vessel: "Russian FFG 335 group",
+    vesselShort: "RU FFG 335, Kilo sub, Balzam",
+    color: "#4A90E2",
+    lat: 32.8,
+    lon: 129.0,
+    location: "West of Goto Islands",
+    direction: "Northbound"
+  },
+  {
+    id: 8,
+    date: "May 3",
+    fullDate: "May 3, 2026",
+    vessel: "Russian FFG 335 group",
+    vesselShort: "RU FFG 335, Kilo sub, Balzam",
+    color: "#4A90E2",
+    lat: 34.2,
+    lon: 129.5,
+    location: "Tsushima Strait",
+    direction: "Northbound"
+  },
+  {
+    id: 9,
+    date: "May 7",
+    fullDate: "May 7, 2026",
+    vessel: "North Korean destroyer",
+    vesselShort: "DPRK Choe Hyon (51)",
+    color: "#FF6B35",
+    lat: 37.5,
+    lon: 124.5,
+    location: "Yellow Sea",
+    direction: "Patrol"
+  },
+  {
+    id: 10,
+    date: "May 7",
+    fullDate: "May 7, 2026",
+    vessel: "US Forces",
+    vesselShort: "Iwo Jima Position",
+    color: "#1e3a8a",
+    lat: 24.78,
+    lon: 141.32,
+    location: "Iwo Jima",
+    direction: "Stationed"
+  },
+  {
+    id: 11,
+    date: "May 4-7",
+    fullDate: "May 4-7, 2026",
+    vessel: "Baliktan 2026",
+    vesselShort: "Baliktan 2026",
+    color: "#10b981",
+    lat: 18.20,
+    lon: 120.59,
+    location: "Laoag City, Philippines",
+    direction: "Exercise"
+  }
+];
+
+// Add island markers
+const islands = [
+  { name: "Tsushima", lat: 34.2, lon: 129.3 },
+  { name: "Goto Islands", lat: 32.8, lon: 129.0 },
+  { name: "Yonaguni Island", lat: 24.45, lon: 123.0 },
+  { name: "Iriomote Island", lat: 24.35, lon: 123.8 },
+  { name: "Iwo Jima", lat: 24.78, lon: 141.32 }
+];
+
+islands.forEach(island => {
+  L.circleMarker([island.lat, island.lon], {
+    radius: 4,
+    fillColor: '#888',
+    color: '#333',
+    weight: 1,
+    opacity: 1,
+    fillOpacity: 0.7
+  }).bindPopup(island.name).addTo(map);
+});
+
+// Current incident index
+let currentIncidentIndex = 0;
+let markers = [];
+
+// Slider event listener
+const slider = document.getElementById('incidentSlider');
+slider.addEventListener('input', (e) => {
+  displayIncident(parseInt(e.target.value));
+});
+
+// Update slider progress bar
+function updateSliderProgress() {
+  const progress = (currentIncidentIndex / 10) * 100;
+  slider.style.setProperty('--progress', `${progress}%`);
+}
+
+// Function to display positions up to a given incident
+function displayIncident(incidentIndex) {
+  currentIncidentIndex = incidentIndex;
+  slider.value = incidentIndex;
+  updateSliderProgress();
+  
+  // Clear existing markers
+  markers.forEach(marker => map.removeLayer(marker));
+  markers = [];
+  
+  const currentIncident = incidents[incidentIndex];
+  
+  // Update current date display with full details
+  document.getElementById('currentDate').innerHTML = `
+    <div style="font-size: 20px; font-weight: 600;">${currentIncident.fullDate}</div>
+    <div style="font-size: 14px; color: #666; margin-top: 4px;">${currentIncident.vesselShort} - ${currentIncident.location} (${currentIncident.direction})</div>
+  `;
+  
+  // Display only the current incident
+  const incident = incidents[incidentIndex];
+  
+  const marker = L.circleMarker([incident.lat, incident.lon], {
+    radius: 10,
+    fillColor: incident.color,
+    color: 'rgba(0,0,0,0.4)',
+    weight: 2,
+    opacity: 1,
+    fillOpacity: 0.9
+  }).bindPopup(`
+    <strong>${incident.vesselShort}</strong><br>
+    ${incident.location}<br>
+    ${incident.direction}<br>
+    <em>${incident.fullDate}</em>
+  `);
+  
+  marker.addTo(map);
+  markers.push(marker);
+  
+  // Draw paths between positions for same vessel
+  drawPaths(incidentIndex);
+  
+  // Update nav buttons
+  document.getElementById('prevBtn').disabled = incidentIndex === 0;
+  document.getElementById('nextBtn').disabled = incidentIndex === incidents.length - 1;
+}
+
+// Draw paths connecting positions
+function drawPaths(upToIndex) {
+  // Group incidents by vessel
+  const vesselPaths = {};
+  
+  for (let i = 0; i <= upToIndex; i++) {
+    const incident = incidents[i];
+    if (!vesselPaths[incident.vessel]) {
+      vesselPaths[incident.vessel] = [];
+    }
+    vesselPaths[incident.vessel].push({ lat: incident.lat, lon: incident.lon, color: incident.color });
+  }
+  
+  // Draw path for each vessel
+  Object.keys(vesselPaths).forEach(vessel => {
+    const points = vesselPaths[vessel];
+    if (points.length > 1) {
+      const coords = points.map(p => [p.lat, p.lon]);
+      const path = L.polyline(coords, {
+        color: points[0].color,
+        weight: 2,
+        opacity: 0.4,
+        dashArray: '5, 10'
+      });
+      path.addTo(map);
+      markers.push(path);
+    }
+  });
+}
+
+function selectIncident(index) {
+  displayIncident(index);
+}
+
+function previousIncident() {
+  if (currentIncidentIndex > 0) {
+    displayIncident(currentIncidentIndex - 1);
+  }
+}
+
+function nextIncident() {
+  if (currentIncidentIndex < incidents.length - 1) {
+    displayIncident(currentIncidentIndex + 1);
+  }
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') previousIncident();
+  if (e.key === 'ArrowRight') nextIncident();
+});
+
+// Fit map to show all incidents
+function fitMapToIncidents() {
+  const allCoords = incidents.map(inc => [inc.lat, inc.lon]);
+  const bounds = L.latLngBounds(allCoords);
+  map.fitBounds(bounds, { padding: [50, 50] });
+}
+
+// Initialize with first incident and fit map
+fitMapToIncidents();
+displayIncident(0);
+</script>
+</body>
+</html>
