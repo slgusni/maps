@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Western Pacific Pulse - June 12, 2026</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"/>
+<style>
+body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+#header {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  background: #4a4a4a;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+}
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.header-logo img {
+  height: 40px;
+  background: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.header-title {
+  color: white;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.red-bar { height: 4px; background: #c41e3a; }
+#map { width: 100%; height: calc(100vh - 230px); margin-top: 60px; }
+#controls {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(255,255,255,0.95);
+  padding: 20px;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  z-index: 1000;
+}
+.incident-slider {
+  width: 100%;
+  margin: 15px 0;
+  height: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(to right, #4A90E2 0%, #4A90E2 var(--progress), #ddd var(--progress), #ddd 100%);
+  outline: none;
+  border-radius: 4px;
+}
+.incident-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px; height: 24px;
+  background: #4A90E2;
+  cursor: pointer;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.incident-slider::-moz-range-thumb {
+  width: 24px; height: 24px;
+  background: #4A90E2;
+  cursor: pointer;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.current-date { text-align: center; margin-bottom: 15px; color: #333; }
+.source {
+  position: absolute;
+  bottom: 160px; right: 10px;
+  background: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 11px; color: #666;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+  z-index: 1000;
+}
+.legend {
+  position: absolute;
+  top: 70px; right: 10px;
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  z-index: 1000;
+  font-size: 12px;
+  max-width: 220px;
+}
+.legend-item { display: flex; align-items: center; margin: 6px 0; }
+.legend-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+  flex-shrink: 0;
+  border: 2px solid rgba(0,0,0,0.3);
+}
+.nav-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+.nav-btn {
+  padding: 8px 20px;
+  border: none;
+  background: #4A90E2;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.nav-btn:hover { background: #357ABD; }
+.nav-btn:disabled { background: #ccc; cursor: not-allowed; }
+</style>
+</head>
+<body>
+<div id="header">
+  <div class="header-top">
+    <div class="header-logo">
+      <img src="USNI_News_Logo.png" alt="USNI News" onerror="this.style.display='none';">
+      <span class="header-title">Western Pacific Pulse</span>
+    </div>
+  </div>
+  <div class="red-bar"></div>
+</div>
+<div id="map"></div>
+<div class="source">Source: JSDF / USNI News</div>
+<div class="legend">
+  <div style="font-weight: 600; margin-bottom: 8px;">Naval & Air Activity</div>
+  <div class="legend-item"><div class="legend-dot" style="background: #dc2626;"></div><span>PLAN (China)</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background: #8b5cf6;"></div><span>Russian Navy</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background: #0891b2;"></div><span>US Navy / Forces</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background: #1e40af;"></div><span>Royal Navy (UK)</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background: #f59e0b;"></div><span>JMSDF (Japan)</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background: #16a34a;"></div><span>ROKN / Allied</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background: #64748b;"></div><span>International</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background: #84cc16;"></div><span>Exercise</span></div>
+</div>
+<div id="controls">
+  <div class="current-date" id="currentDate">
+    <div style="font-size: 20px; font-weight: 600;">Loading...</div>
+    <div style="font-size: 14px; color: #666; margin-top: 4px;"></div>
+  </div>
+  <input type="range" id="incidentSlider" class="incident-slider" min="0" max="14" value="0" step="1">
+  <div class="nav-buttons">
+    <button class="nav-btn" id="prevBtn" onclick="previousIncident()">← Previous</button>
+    <button class="nav-btn" id="nextBtn" onclick="nextIncident()">Next →</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+const map = L.map('map').setView([20.0, 130.0], 4);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors',
+  maxZoom: 19
+}).addTo(map);
+
+const incidents = [
+  {
+    id: 1,
+    fullDate: "Week of June 12, 2026",
+    vessel: "USS George Washington",
+    vesselShort: "USS George Washington (CVN-73)",
+    color: "#0891b2",
+    lat: 25.903,
+    lon: 138.082,
+    location: "Philippine Sea",
+    direction: "Spring patrol. Fuelling at sea with USNS Earl Warren on Monday."
+  },
+  {
+    id: 2,
+    fullDate: "Week of June 12, 2026",
+    vessel: "PLAN CSG",
+    vesselShort: "Liaoning Carrier Strike Group",
+    color: "#dc2626",
+    lat: 21.052,
+    lon: 127.711,
+    location: "Philippine Sea, east of Luzon",
+    direction: "Operating 350nm east of Luzon as of Tuesday. JS Asahi (DD-119) shadowing."
+  },
+  {
+    id: 3,
+    fullDate: "Week of June 12, 2026",
+    vessel: "USS Boxer ARG",
+    vesselShort: "USS Boxer (LHD-4) + USS Portland (LPD-27)",
+    color: "#0891b2",
+    lat: 15.488,
+    lon: 114.405,
+    location: "South China Sea",
+    direction: "Operating together with 11th MEU embarked. Flight ops Wednesday."
+  },
+  {
+    id: 4,
+    fullDate: "Week of June 12, 2026",
+    vessel: "RIMPAC transit Guam",
+    vesselShort: "ITS Giovanni, BRP Miguel Malvar, BRP Gabriela Silang, RSS Steadfast",
+    color: "#64748b",
+    lat: 13.461,
+    lon: 144.663,
+    location: "Apra Harbor, Guam",
+    direction: "Arrived together Tuesday en route to RIMPAC 2026."
+  },
+  {
+    id: 5,
+    fullDate: "Week of June 12, 2026",
+    vessel: "ROKN RIMPAC transit",
+    vesselShort: "ROKS Cheon Ja Bong (LST-687) + JS Kongo (DDG-173)",
+    color: "#16a34a",
+    lat: 30.395,
+    lon: 125.915,
+    location: "East China Sea",
+    direction: "Joint SAR exercise Monday. Both en route to RIMPAC."
+  },
+  {
+    id: 6,
+    fullDate: "Week of June 12, 2026",
+    vessel: "HNLMS De Ruyter",
+    vesselShort: "HNLMS De Ruyter (F804)",
+    color: "#64748b",
+    lat: 37.475,
+    lon: 126.631,
+    location: "Incheon, South Korea",
+    direction: "Departed Friday after port visit. PASSEX with ROKS Eulji Mundeok. Next stop Tokyo."
+  },
+  {
+    id: 7,
+    fullDate: "Week of June 12, 2026",
+    vessel: "RNZN RIMPAC",
+    vesselShort: "HMNZS Te Mana (F111) + HMNZS Aotearoa (A11)",
+    color: "#16a34a",
+    lat: -36.831,
+    lon: 174.791,
+    location: "Devonport Naval Base, New Zealand",
+    direction: "Departed Friday for RIMPAC 2026."
+  },
+  {
+    id: 9,
+    fullDate: "Week of June 12, 2026",
+    vessel: "JS Takanami",
+    vesselShort: "JS Takanami (DD-110)",
+    color: "#f59e0b",
+    lat: 35.281,
+    lon: 139.672,
+    location: "Yokosuka, Japan",
+    direction: "Departed Saturday for Middle East as 54th DSPE counter-piracy deployment."
+  },
+  {
+    id: 10,
+    fullDate: "Week of June 12, 2026",
+    vessel: "JS Kumano return",
+    vesselShort: "JS Kumano (FFM-2)",
+    color: "#f59e0b",
+    lat: 35.281,
+    lon: 139.672,
+    location: "Yokosuka, Japan",
+    direction: "Returned Sunday after 96-day deployment to Australia and New Zealand."
+  },
+  {
+    id: 11,
+    fullDate: "Week of June 12, 2026",
+    vessel: "JS Ikazuchi return",
+    vesselShort: "JS Ikazuchi (DD-107)",
+    color: "#f59e0b",
+    lat: 35.281,
+    lon: 139.672,
+    location: "Yokosuka, Japan",
+    direction: "Returned Sunday. Completed IPD26 independent deployment following Balikatan."
+  },
+  {
+    id: 12,
+    fullDate: "Week of June 12, 2026",
+    vessel: "IPD26 Second Surface Unit",
+    vesselShort: "JS Kaga (DDH-184), JS Fuyuzuki (DD-118), JS Mashu (AOE-425)",
+    color: "#f59e0b",
+    lat: 34.249,
+    lon: 132.566,
+    location: "Kure / Maizuru, Japan",
+    direction: "Kaga departed Kure, Fuyuzuki and Mashu departed Maizuru Tuesday for IPD26."
+  },
+  {
+    id: 13,
+    fullDate: "Week of June 12, 2026",
+    vessel: "ASW exercise Okinawa",
+    vesselShort: "JMSDF P-1, P-3C + USN P-8A Poseidon",
+    color: "#f59e0b",
+    lat: 24.914,
+    lon: 127.724,
+    location: "South of Okinawa",
+    direction: "Joint anti-submarine warfare exercise Tuesday with VP-26."
+  },
+  {
+    id: 14,
+    fullDate: "Week of June 12, 2026",
+    vessel: "PLAN southwest Japan",
+    vesselShort: "CNS Nanjing (155) + CNS Binzhou (515)",
+    color: "#dc2626",
+    lat: 25.756,
+    lon: 129.856,
+    location: "Southwest Japan / Kikaijima",
+    direction: "Patrolling east of Kikaijima. Sailed into East China Sea Wednesday via Amami Oshima."
+  },
+  {
+    id: 15,
+    fullDate: "Week of June 12, 2026",
+    vessel: "Chinese ELINT aircraft",
+    vesselShort: "Chinese Y-9 ELINT + TB-001 drone",
+    color: "#dc2626",
+    lat: 30.395,
+    lon: 125.915,
+    location: "East China Sea",
+    direction: "Y-9 ELINT and TB-001 drone flew sorties over East China Sea Friday. JASDF scrambled."
+  },
+  {
+    id: 16,
+    fullDate: "Week of June 12, 2026",
+    vessel: "Southern Jackaroo",
+    vesselShort: "MRF-D 26 / 11th Airborne / JGSDF",
+    color: "#84cc16",
+    lat: -19.260,
+    lon: 146.814,
+    location: "Townsville, Australia",
+    direction: "Exercise Southern Jackaroo 2026 (US–Australia–Japan). Runs to July 3."
+  }
+];
+
+let currentIncidentIndex = 0;
+let markers = [];
+
+const slider = document.getElementById('incidentSlider');
+slider.addEventListener('input', (e) => {
+  displayIncident(parseInt(e.target.value));
+});
+
+function updateSliderProgress() {
+  const progress = (currentIncidentIndex / (incidents.length - 1)) * 100;
+  slider.style.setProperty('--progress', `${progress}%`);
+}
+
+function displayIncident(incidentIndex) {
+  currentIncidentIndex = incidentIndex;
+  slider.value = incidentIndex;
+  updateSliderProgress();
+
+  markers.forEach(marker => map.removeLayer(marker));
+  markers = [];
+
+  const currentIncident = incidents[incidentIndex];
+
+  document.getElementById('currentDate').innerHTML = `
+    <div style="font-size: 20px; font-weight: 600;">${currentIncident.fullDate}</div>
+    <div style="font-size: 14px; color: #666; margin-top: 4px;">${currentIncident.vesselShort} — ${currentIncident.location}</div>
+  `;
+
+  incidents.forEach((incident, i) => {
+    const isFuture = i > incidentIndex;
+    const isCurrent = i === incidentIndex;
+
+    const marker = L.circleMarker([incident.lat, incident.lon], {
+      radius: isCurrent ? 10 : 6,
+      fillColor: incident.color,
+      color: isFuture ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.4)',
+      weight: 2,
+      opacity: isFuture ? 0.3 : 1,
+      fillOpacity: isFuture ? 0.2 : (isCurrent ? 0.9 : 0.6)
+    }).bindPopup(`
+      <strong>${incident.vesselShort}</strong><br>
+      ${incident.location}<br>
+      ${incident.direction}<br>
+      <em>${incident.fullDate}</em>
+    `);
+
+    marker.addTo(map);
+    markers.push(marker);
+  });
+
+  drawPaths(incidentIndex);
+
+  document.getElementById('prevBtn').disabled = incidentIndex === 0;
+  document.getElementById('nextBtn').disabled = incidentIndex === incidents.length - 1;
+}
+
+function drawPaths(upToIndex) {
+  const vesselPaths = {};
+  for (let i = 0; i <= upToIndex; i++) {
+    const incident = incidents[i];
+    if (!vesselPaths[incident.vessel]) vesselPaths[incident.vessel] = [];
+    vesselPaths[incident.vessel].push({ lat: incident.lat, lon: incident.lon, color: incident.color });
+  }
+  Object.keys(vesselPaths).forEach(vessel => {
+    const points = vesselPaths[vessel];
+    if (points.length > 1) {
+      const path = L.polyline(points.map(p => [p.lat, p.lon]), {
+        color: points[0].color,
+        weight: 2,
+        opacity: 0.4,
+        dashArray: '5, 10'
+      });
+      path.addTo(map);
+      markers.push(path);
+    }
+  });
+}
+
+function previousIncident() {
+  if (currentIncidentIndex > 0) displayIncident(currentIncidentIndex - 1);
+}
+
+function nextIncident() {
+  if (currentIncidentIndex < incidents.length - 1) displayIncident(currentIncidentIndex + 1);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') previousIncident();
+  if (e.key === 'ArrowRight') nextIncident();
+});
+
+function fitMapToIncidents() {
+  const bounds = L.latLngBounds(incidents.map(inc => [inc.lat, inc.lon]));
+  map.fitBounds(bounds, { padding: [50, 50] });
+}
+
+fitMapToIncidents();
+displayIncident(0);
+</script>
+</body>
+</html>
