@@ -135,7 +135,6 @@ body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "S
   <div class="legend-item"><div class="legend-dot" style="background: #dc2626;"></div><span>PLAN (China)</span></div>
   <div class="legend-item"><div class="legend-dot" style="background: #8b5cf6;"></div><span>Russian Navy</span></div>
   <div class="legend-item"><div class="legend-dot" style="background: #0891b2;"></div><span>US Navy / Forces</span></div>
-  <div class="legend-item"><div class="legend-dot" style="background: #1e40af;"></div><span>Royal Navy (UK)</span></div>
   <div class="legend-item"><div class="legend-dot" style="background: #f59e0b;"></div><span>JMSDF (Japan)</span></div>
   <div class="legend-item"><div class="legend-dot" style="background: #16a34a;"></div><span>ROKN / Allied</span></div>
   <div class="legend-item"><div class="legend-dot" style="background: #64748b;"></div><span>International</span></div>
@@ -146,7 +145,7 @@ body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "S
     <div style="font-size: 20px; font-weight: 600;">Loading...</div>
     <div style="font-size: 14px; color: #666; margin-top: 4px;"></div>
   </div>
-  <input type="range" id="incidentSlider" class="incident-slider" min="0" max="16" value="0" step="1">
+  <input type="range" id="incidentSlider" class="incident-slider" min="0" max="17" value="0" step="1">
   <div class="nav-buttons">
     <button class="nav-btn" id="prevBtn" onclick="previousIncident()">← Previous</button>
     <button class="nav-btn" id="nextBtn" onclick="nextIncident()">Next →</button>
@@ -155,7 +154,7 @@ body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "S
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
-const map = L.map('map').setView([25.0, 125.0], 5);
+const map = L.map('map').setView([25.0, 130.0], 4);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap contributors',
   maxZoom: 19
@@ -164,190 +163,201 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 const incidents = [
   {
     id: 1,
-    fullDate: "June 19–20, 2026",
-    vessel: "PLAN-531",
-    vesselShort: "CNS Xiangtan (531) — Jiangkai II-class frigate",
-    color: "#dc2626",
-    lat: 29.10,
-    lon: 129.60,
-    location: "Between Amami Oshima and Yokoate-jima",
-    direction: "Sighted June 19 heading southeast in an area 230 km west of Yokoate-jima, then transited northeast between Amami Oshima and Yokoate-jima to enter the Pacific Ocean. Monitored by JMSDF P-3C Orion (Fleet Air Wing 5, Naha)."
+    fullDate: "Week of July 3, 2026",
+    vessel: "Valiant Shield",
+    vesselShort: "Exercise Valiant Shield 2026",
+    color: "#84cc16",
+    lat: 15.0979,
+    lon: 145.6739,
+    location: "Northern Mariana Islands / Guam / Philippine Sea",
+    direction: "Concluded Wednesday after 10 days. GW CSG, JS Kaga, HMCS Charlottetown participated. SINKEX of USS Juneau on Saturday."
   },
   {
     id: 2,
-    fullDate: "June 21, 2026",
-    vessel: "Resolute-Dragon",
-    vesselShort: "Resolute Dragon 26 — USMC / JGSDF",
+    fullDate: "Week of July 3, 2026",
+    vessel: "RIMPAC 2026",
+    vesselShort: "RIMPAC 2026",
     color: "#84cc16",
-    lat: 33.50,
-    lon: 130.50,
-    location: "Various locations, Japan",
-    direction: "Exercise Resolute Dragon 26 began Saturday, led by III Marine Expeditionary Force and JGSDF Western Army. Runs until June 30. Focuses on bilateral interoperability for island defense operations."
+    lat: 19.8987,
+    lon: 202.14,
+    location: "Hawaii",
+    direction: "Harbor and shore phase underway. 31 ships, 5 submarines, 197 aircraft, ~30,000 personnel from 30 nations."
   },
   {
     id: 3,
-    fullDate: "June 22, 2026",
-    vessel: "VS26-Guam",
-    vesselShort: "Valiant Shield 2026",
-    color: "#84cc16",
-    lat: 13.44,
-    lon: 144.79,
-    location: "Guam / CNMI / Japan / Mariana Islands Range Complex",
-    direction: "Exercise Valiant Shield 2026 began Monday with Australia, Japan, Canada and New Zealand joining the U.S. Activities include ASW with George Washington CSG (CVN-73, CG-62, DDG-65, DDG-86), JS Kaga (DDH-184), JS Fuyuzuki (DD-118), HMCS Charlottetown (FFH339) and P-8A MPAs tracking USS Minnesota (SSN-783) and JS Jingei (SS-515). Fighter training: VMFA-242 F-35Bs, USAF F-22s and JASDF F-15Js flew formation over the Pacific. MQ-28 Ghost Bat CCA trials at Rota. 12th MLR bilateral SUAS training with JGSDF on Tokunoshima."
+    fullDate: "Week of July 3, 2026",
+    vessel: "Russia-China air patrol",
+    vesselShort: "11th China-Russia Joint Strategic Air Patrol",
+    color: "#8b5cf6",
+    lat: 38.848848,
+    lon: 135.0,
+    location: "Sea of Japan / East China Sea / Philippine Sea",
+    direction: "Saturday: 2x H-6, 2x Tu-95, 2x Tu-142, J-16 and Su-35 escorts. Entered ROK and Japan ADIZs."
   },
   {
     id: 4,
-    fullDate: "June 23, 2026",
-    vessel: "PLAN-Fujian",
-    vesselShort: "CNS Fujian (18) — Taiwan Strait transit",
+    fullDate: "Week of July 3, 2026",
+    vessel: "83rd PLAN Task Group",
+    vesselShort: "83rd PLAN Task Group",
     color: "#dc2626",
-    lat: 24.50,
-    lon: 120.30,
-    location: "Taiwan Strait",
-    direction: "PLAN carrier CNS Fujian (18) transited south through the Taiwan Strait on Tuesday. China Ministry of National Defense confirmed the transit Thursday, describing it as routine training."
+    lat: 43.1332,
+    lon: 131.9113,
+    location: "Vladivostok, Russia",
+    direction: "Departed Saturday after four-day port visit. CNS Qi Jiguang and CNS Kunlunshan with 400 midshipmen."
   },
   {
     id: 5,
-    fullDate: "June 23, 2026",
-    vessel: "DPRK-ChoeHyon",
-    vesselShort: "North Korea commissions destroyer Choe Hyon (51)",
-    color: "#64748b",
-    lat: 38.74,
-    lon: 125.38,
-    location: "Nampho, North Korea",
-    direction: "North Korea commissioned its largest warship to date, the 5,000-ton destroyer Choe Hyon (51), in a ceremony at Nampho on the west coast. The commissioning was overseen by leader Kim Jong Un."
+    fullDate: "Week of July 3, 2026",
+    vessel: "USS Montana",
+    vesselShort: "USS Montana (SSN-794)",
+    color: "#0891b2",
+    lat: 35.281498,
+    lon: 139.6722,
+    location: "Yokosuka, Japan",
+    direction: "Docked Monday for rest, replenishment and maintenance."
   },
   {
     id: 6,
-    fullDate: "June 23, 2026",
-    vessel: "PLAN-83TG",
-    vesselShort: "83rd PLAN Task Group — CNS Qi Jiguang (83) + CNS Kunlunshan (998)",
-    color: "#dc2626",
-    lat: 43.11,
-    lon: 131.88,
-    location: "Vladivostok, Russia",
-    direction: "PLAN training ship CNS Qi Jiguang (83) and amphibious transport dock CNS Kunlunshan (998) arrived in Vladivostok on Tuesday for a 4-day port visit. The group departed Qingdao on June 15 with 400 midshipmen and instructors embarked."
+    fullDate: "Week of July 3, 2026",
+    vessel: "Russian Tsushima transit",
+    vesselShort: "RFS Varyag (011) + Kilo submarine + Igor Belousov",
+    color: "#8b5cf6",
+    lat: 33.9526,
+    lon: 130.2801,
+    location: "Tsushima Strait",
+    direction: "Varyag and Kilo sub, plus Igor Belousov and fleet oiler, sailed southwest through Tsushima to East China Sea Wednesday. Shadowed by JS Amakusa."
   },
   {
     id: 7,
-    fullDate: "June 23, 2026",
-    vessel: "RFS-Magadan",
-    vesselShort: "RFS Magadan (B-602) — Improved Kilo-class submarine",
-    color: "#8b5cf6",
-    lat: 43.09,
-    lon: 131.85,
-    location: "Vladivostok, Russia",
-    direction: "Russian Pacific Fleet attack submarine RFS Magadan (B-602) returned to Vladivostok on Wednesday after a patrol that began in December 2025, including a 40-day at-sea operational mission in the final stage."
+    fullDate: "Week of July 3, 2026",
+    vessel: "PLAN Tsushima transit",
+    vesselShort: "CNS Guiyang (119) + CNS Xining (117)",
+    color: "#dc2626",
+    lat: 33.9526,
+    lon: 130.2801,
+    location: "Tsushima Strait",
+    direction: "Guiyang southbound Saturday, Xining southbound Sunday — both returning to East China Sea. Shadowed by JS Shirataka and JS Hiuchi."
   },
   {
     id: 8,
-    fullDate: "June 23, 2026",
-    vessel: "HMLA-367-Seay",
-    vesselShort: "HMLA-367 — Deck landing qualifications, USNS Seay",
-    color: "#0891b2",
-    lat: 26.45,
-    lon: 127.96,
-    location: "Kin Bay, Okinawa",
-    direction: "Marine Light Attack Helicopter Squadron 367 (MAG-39, 3rd MAW) conducted UH-1Y Venom deck landing qualifications aboard prepositioning ship USNS Seay (T-AKR-302) at Kin Bay, Okinawa on Monday."
+    fullDate: "Week of July 3, 2026",
+    vessel: "PLAN Miyako transit",
+    vesselShort: "CNS Xiangtan (531) + CNS Dongguan (109) + CNS Anyang (599)",
+    color: "#dc2626",
+    lat: 25.4237,
+    lon: 126.4836,
+    location: "Miyako Strait",
+    direction: "Xiangtan westbound Wednesday into East China Sea. Dongguan eastbound Tuesday to Philippine Sea. Anyang southbound June 26 to Philippine Sea."
   },
   {
     id: 9,
-    fullDate: "June 24, 2026",
-    vessel: "PLAN-117",
-    vesselShort: "CNS Xining (117) — Luyang III-class destroyer",
-    color: "#dc2626",
-    lat: 33.85,
-    lon: 128.85,
-    location: "Tsushima Strait",
-    direction: "Sighted at 3 p.m. Wednesday heading northeast ~80 km southwest of Tsushima, then confirmed transiting Tsushima Strait into the Sea of Japan. Monitored by JMSDF multipurpose support ship JS Hiuchi (AMS-4301, 1st Surface Training Support Squadron, Maizuru)."
+    fullDate: "Week of July 3, 2026",
+    vessel: "Russian Kurily surveillance",
+    vesselShort: "Russian surveillance ship Kurily (208)",
+    color: "#8b5cf6",
+    lat: 25.4237,
+    lon: 126.4836,
+    location: "Miyako Strait",
+    direction: "Sighted Tuesday near Kume Island, sailed east to Philippine Sea. Previously transited Tsushima Strait Saturday. Shadowed by JS Suzunami and JS Towada."
   },
   {
     id: 10,
-    fullDate: "June 24, 2026",
-    vessel: "PLAN-Liaoning",
-    vesselShort: "PLAN Liaoning CSG — returned to Qingdao",
-    color: "#dc2626",
-    lat: 36.07,
-    lon: 120.38,
-    location: "Qingdao, China",
-    direction: "Liaoning CSG — CNS Liaoning (16), cruiser CNS Wuxi (104), destroyer CNS Kaifeng (124), frigate CNS Luohe (545) and fast combat support ship CNS Hulunhu (901) — returned to Qingdao Monday after a 40-day deployment in the South China Sea and Philippine Sea. China accused Japan of provocation during its shadowing of the CSG; Japan's Joint Staff Office disputed the claim."
+    fullDate: "Week of July 3, 2026",
+    vessel: "Russian Yonaguni transit",
+    vesselShort: "RFS Sovershennyy (333), RFS Rezkiy (343) + Dubna oiler",
+    color: "#8b5cf6",
+    lat: 24.456,
+    lon: 122.9945,
+    location: "Yonaguni Island",
+    direction: "Sailed northeast Saturday near Yonaguni, through Yonaguni-Iriomote strait. Sovershennyy and oiler then northbound through Tsushima Monday."
   },
   {
     id: 11,
-    fullDate: "June 25, 2026",
-    vessel: "PLAN-119",
-    vesselShort: "CNS Guiyang (119) — Luyang III-class destroyer",
+    fullDate: "Week of July 3, 2026",
+    vessel: "PLAN Osumi transit",
+    vesselShort: "CNS Xi'an (153) + CNS Yancheng (546) + CNS Nanchang (101)",
     color: "#dc2626",
-    lat: 33.70,
-    lon: 128.70,
-    location: "Tsushima Strait",
-    direction: "Sighted at 2 p.m. Thursday heading northeast ~70 km southwest of Tsushima, then confirmed transiting Tsushima Strait into the Sea of Japan. Monitored by JMSDF multipurpose support ship JS Hiuchi (AMS-4301, 1st Surface Training Support Squadron, Maizuru)."
+    lat: 31.0437,
+    lon: 130.7271,
+    location: "Osumi Strait",
+    direction: "Xi'an eastbound Monday, Yancheng and Dongpinghu eastbound Sunday, Nanchang eastbound Sunday — all to Philippine Sea. Shadowed by JS Akebono."
   },
   {
     id: 12,
-    fullDate: "June 25, 2026",
-    vessel: "RU-Tarantul",
-    vesselShort: "RFS R-20 (921) + RFS R-14 (924) + Amga-class supply ship",
-    color: "#8b5cf6",
-    lat: 45.45,
-    lon: 141.20,
-    location: "La Pérouse (Sōya) Strait",
-    direction: "Three-vessel group sighted at 4 a.m. Thursday sailing east ~50 km northwest of Rebun Island, then transited La Pérouse Strait — separating Hokkaido from Russia's Sakhalin Island — to enter the Sea of Okhotsk. Monitored by JMSDF fast attack craft JS Wakataka (PG-825, 5th Patrol Security Squadron, Ōminato)."
+    fullDate: "Week of July 3, 2026",
+    vessel: "PLAN Amami transit",
+    vesselShort: "CNS Suzhou (132) + Tianshuxing (795)",
+    color: "#dc2626",
+    lat: 28.2678,
+    lon: 129.3621,
+    location: "Amami Oshima / Yokoate Island",
+    direction: "Suzhou transited northeast June 26 then returned southwest Sunday. Tianshuxing northbound Monday to Philippine Sea. Shadowed by JS Akebono and JS Kuroshima."
   },
   {
     id: 13,
-    fullDate: "Week of June 26, 2026",
-    vessel: "Boxer-ARG",
-    vesselShort: "USS Boxer ARG — Indian Ocean",
-    color: "#0891b2",
-    lat: 5.00,
-    lon: 75.00,
-    location: "Indian Ocean",
-    direction: "USS Boxer (LHD-4) and USS Portland (LPD-27) departed Singapore over the weekend, transited the Malacca Strait and joined USS John L. Canley (ESB-6) and USNS Pililaau (T-AKR-304) in the Indian Ocean on Wednesday. The Boxer ARG also includes USS Comstock with the embarked 11th Marine Expeditionary Unit. Comstock operating with U.S. 5th Fleet."
+    fullDate: "Week of July 3, 2026",
+    vessel: "Russian La Perouse transit",
+    vesselShort: "RFS Admiral Panteleyev (548)",
+    color: "#8b5cf6",
+    lat: 45.8102,
+    lon: 141.9262,
+    location: "La Perouse Strait",
+    direction: "Sighted Sunday near Cape Soya, sailed west through La Perouse Strait to Sea of Japan. Monitored by JMSDF P-3C."
   },
   {
     id: 14,
-    fullDate: "Week of June 26, 2026",
-    vessel: "HMS-Tamar",
-    vesselShort: "HMS Tamar (P233) — departed Jakarta",
-    color: "#1e40af",
-    lat: -6.19,
-    lon: 106.82,
-    location: "Tanjung Priok, Jakarta, Indonesia",
-    direction: "Royal Navy offshore patrol vessel HMS Tamar (P233) departed Tanjung Priok, Jakarta on Saturday after completing a four-day port visit."
+    fullDate: "Week of July 3, 2026",
+    vessel: "PLAN Hong Kong",
+    vesselShort: "CNS Nanning (162) + CNS Hengyang (568)",
+    color: "#dc2626",
+    lat: 22.3193,
+    lon: 114.1694,
+    location: "Hong Kong",
+    direction: "Arrived Thursday for five-day port visit marking 29th anniversary of Hong Kong's handover."
   },
   {
     id: 15,
-    fullDate: "Week of June 26, 2026",
-    vessel: "KAMANDAG-10",
-    vesselShort: "KAMANDAG 10",
-    color: "#84cc16",
-    lat: 9.84,
-    lon: 118.74,
-    location: "Palawan, Philippines",
-    direction: "MRF-D, MRF-SEA, 3rd MLR, Philippine Marine Corps and multinational participants are conducting KAMANDAG 10 (Jun. 15–Jul. 10). U.S., Philippine Marines, JGSDF and ROK Marines taking part — 2,000 personnel total. On Monday an airfield seizure demonstration was carried out at Berong Airfield, Palawan."
+    fullDate: "Week of July 3, 2026",
+    vessel: "Philippines US Coast Guard exercise",
+    vesselShort: "Philippines / US Coast Guard Maritime Cooperative Activity",
+    color: "#0891b2",
+    lat: 15.2191,
+    lon: 117.7403,
+    location: "South China Sea (Philippine EEZ)",
+    direction: "Two-day exercise Monday-Tuesday. BRP Melchora Aquino, BRP Capones, BRP Antonio Luna, USCGC Charles Moulthrope, USCGC Emlen Tunnell."
   },
   {
     id: 16,
-    fullDate: "June 26, 2026",
-    vessel: "RIMPAC-2026",
-    vesselShort: "RIMPAC 2026 — 30-nation exercise",
-    color: "#84cc16",
-    lat: 21.31,
-    lon: 202.14,
-    location: "Hawaii",
-    direction: "RIMPAC 2026 began Thursday and runs to July 31. 30 nations, 31 surface ships, 5 submarines, 197 aircraft and ~30,000 personnel. U.S. lead: USS Theodore Roosevelt (CVN-71) with CVW-9, USS Chosin (CG-65), USS Paul Hamilton (DDG-60), USS Decatur (DDG-73), USS Wayne E. Meyer (DDG-108), USS Carl M. Levin (DDG-120), USS Essex (LHD-2), USS Charlotte (SSN-766), USS Columbia (SSN-771), USNS Tippecanoe, USNS Guadalupe, USNS Washington Chambers and USCGC Kimball (WMSL-756)."
+    fullDate: "Week of July 3, 2026",
+    vessel: "PLAN Scarborough Shoal",
+    vesselShort: "PLA Southern Theater Command",
+    color: "#dc2626",
+    lat: 15.2191,
+    lon: 117.7403,
+    location: "Scarborough Shoal",
+    direction: "Naval and air readiness patrols in response to Philippines-US exercise. H-6 bombers, J-16 fighters, CNS Tongliao, CNS Panzhihua, CNS Hanzhong deployed."
   },
   {
     id: 17,
-    fullDate: "Week of June 26, 2026",
-    vessel: "Southern-Jackaroo",
-    vesselShort: "Southern Jackaroo 2026 — U.S. / Australia / Japan",
+    fullDate: "Week of July 3, 2026",
+    vessel: "Russia-China air patrol east",
+    vesselShort: "11th China-Russia Joint Strategic Air Patrol",
+    color: "#dc2626",
+    lat: 30.3953,
+    lon: 125.9152,
+    location: "East China Sea",
+    direction: "Aircraft flew circuit over East China Sea before returning to mainland China."
+  },
+  {
+    id: 18,
+    fullDate: "Week of July 3, 2026",
+    vessel: "Valiant Shield Philippine Sea",
+    vesselShort: "Exercise Valiant Shield 2026 — at-sea drills",
     color: "#84cc16",
-    lat: -19.26,
-    lon: 146.81,
-    location: "Townsville, Australia",
-    direction: "MRF-D and U.S. Army 11th Airborne Division are participating in Southern Jackaroo 2026 (May 29–Jul. 3) alongside Australian 3rd Brigade and JGSDF 7th Infantry Regiment / 3rd Division. Focus: combined arms integration and interoperability. Recent activity included a joint river crossing exercise using Australian tank bridge."
+    lat: 19.4914,
+    lon: 132.5510,
+    location: "Philippine Sea",
+    direction: "GW CSG, JS Kaga, Fuyuzuki, Mashu, JS Jingei, HMCS Charlottetown, RAAF and RNZAF P-8As participated."
   }
 ];
 
@@ -442,13 +452,15 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight') nextIncident();
 });
 
-// Fit to Western Pacific core only — exclude Indian Ocean outlier
-const coreBounds = incidents
-  .filter(inc => inc.lon > 100 && inc.lon < 160 && inc.lat > -25 && inc.lat < 50)
-  .map(inc => [inc.lat, inc.lon]);
+function fitMapToIncidents() {
+  const coords = incidents
+    .filter(inc => inc.lon < 180)
+    .map(inc => [inc.lat, inc.lon]);
+  const bounds = L.latLngBounds(coords);
+  map.fitBounds(bounds, { padding: [50, 50] });
+}
 
-map.fitBounds(L.latLngBounds(coreBounds), { padding: [60, 60] });
-
+fitMapToIncidents();
 displayIncident(0);
 </script>
 </body>
