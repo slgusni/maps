@@ -375,7 +375,11 @@ var handle = document.getElementById('progress-handle');
 var hint   = document.getElementById('progress-hint');
 
 function setProgress(p) {
-  currentProgress = Math.max(0, Math.min(1, p));
+  p = Math.max(0, Math.min(1, p));
+  // Snap to the ends so the first/last waypoints reliably trigger
+  if (p > 0.985) p = 1;
+  if (p < 0.015) p = 0;
+  currentProgress = p;
   var pct = (currentProgress * 100) + '%';
   fill.style.width = pct;
   handle.style.left = pct;
