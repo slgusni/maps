@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calayan Island — 3rd MLR NMESIS Range</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; font-family: Arial, sans-serif; background: #111; }
+  #container { display: flex; flex-direction: column; width: 100%; height: 100vh; }
+  #header {
+    background: rgba(0,0,0,0.85); color: #f0e0c0;
+    padding: 8px 14px; font-size: 14px; font-weight: bold;
+    letter-spacing: 0.5px; border-bottom: 1px solid #444; flex-shrink: 0;
+  }
+  #header span { font-size: 11px; font-weight: normal; color: #aaa; margin-left: 10px; }
+  #map { flex: 1; width: 100%; min-height: 0; }
+  .leaflet-container { background: #1a2a3a; cursor: default !important; }
+</style>
+</head>
+<body>
+<div id="container">
+  <div id="header">
+    🎯 Calayan Island — 3rd Marine Littoral Regiment
+    <span>NMESIS Range: 115 Nautical Miles</span>
+  </div>
+  <div id="map"></div>
+</div>
+<script>
+// Calayan Island, Luzon Strait
+const LAT = 19.2630;
+const LNG = 121.4720;
+const RANGE_NM = 115;
+const RANGE_M = RANGE_NM * 1852; // nautical miles to meters
+
+const map = L.map('map', {
+  center: [LAT, LNG],
+  zoom: 7,
+  zoomControl: false,
+  dragging: false,
+  scrollWheelZoom: false,
+  doubleClickZoom: false,
+  touchZoom: false,
+  keyboard: false,
+  boxZoom: false,
+  attributionControl: true
+});
+
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  crossOrigin: true
+}).addTo(map);
+
+// NMESIS range ring
+L.circle([LAT, LNG], {
+  radius: RANGE_M,
+  color: '#FFD600',
+  weight: 2.5,
+  fillColor: '#FFD600',
+  fillOpacity: 0.08,
+  dashArray: '8 5',
+  interactive: false
+}).addTo(map);
+
+// Range label at top of ring
+const earthR = 6371000;
+const dLat = (RANGE_M / earthR) * (180 / Math.PI);
+L.marker([LAT + dLat, LNG], {
+  icon: L.divIcon({
+    className: '',
+    html: `<div style="color:#FFD600;font-size:11px;font-weight:bold;white-space:nowrap;
+           text-shadow:1px 1px 3px #000,-1px -1px 3px #000;
+           transform:translateX(-50%);font-family:Arial;">NMESIS — 115 nm</div>`,
+    iconAnchor: [0, 14]
+  }),
+  interactive: false
+}).addTo(map);
+
+// Calayan Island marker
+L.circleMarker([LAT, LNG], {
+  radius: 7,
+  color: '#fff',
+  fillColor: '#ff4444',
+  fillOpacity: 1,
+  weight: 2,
+  interactive: false
+}).addTo(map);
+
+// Island label
+L.marker([LAT, LNG], {
+  icon: L.divIcon({
+    className: '',
+    html: `<div style="color:#fff;font-weight:bold;font-size:12px;white-space:nowrap;
+           text-shadow:1px 1px 3px #000,-1px -1px 3px #000;
+           padding-left:12px;margin-top:-8px">Calayan Island<br>
+           <span style="font-size:9px;font-weight:normal;color:#ddd">3rd Marine Littoral Regiment</span></div>`,
+    iconAnchor: [0, 0]
+  }),
+  interactive: false
+}).addTo(map);
+
+// USNI News logo
+const logo = L.control({ position: 'bottomleft' });
+logo.onAdd = () => {
+  const d = L.DomUtil.create('div');
+  d.style.cssText = 'padding:4px 6px;background:rgba(0,0,0,0.6);border-radius:4px;';
+  d.innerHTML = '<img src="https://news.usni.org/wp-content/uploads/2016/02/usni_logo.png" style="height:28px;display:block;">';
+  return d;
+};
+logo.addTo(map);
+</script>
+</body>
+</html>
