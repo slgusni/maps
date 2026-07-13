@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Western Pacific Pulse - June 26, 2026</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"/>
+<style>
+body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+#header {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  background: #4a4a4a;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+}
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.header-logo img {
+  height: 40px;
+  background: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.header-title {
+  color: white;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.red-bar { height: 4px; background: #c41e3a; }
+#map { width: 100%; height: calc(100vh - 230px); margin-top: 60px; }
+#controls {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(255,255,255,0.95);
+  padding: 20px;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  z-index: 1000;
+}
+.incident-slider {
+  width: 100%;
+  margin: 15px 0;
+  height: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(to right, #4A90E2 0%, #4A90E2 var(--progress), #ddd var(--progress), #ddd 100%);
+  outline: none;
+  border-radius: 4px;
+}
+.incident-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px; height: 24px;
+  background: #4A90E2;
+  cursor: pointer;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.incident-slider::-moz-range-thumb {
+  width: 24px; height: 24px;
+  background: #4A90E2;
+  cursor: pointer;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.current-date { text-align: center; margin-bottom: 15px; color: #333; }
+.source {
+  position: absolute;
+  bottom: 160px; right: 10px;
+  background: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 11px; color: #666;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+  z-index: 1000;
+}
+.legend {
+  position: absolute;
+  top: 70px; right: 10px;
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  z-index: 1000;
+  font-size: 12px;
+  max-width: 220px;
+}
+.legend-item { display: flex; align-items: center; margin: 6px 0; }
+.legend-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+  flex-shrink: 0;
+  border: 2px solid rgba(0,0,0,0.3);
+}
+.nav-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+.nav-btn {
+  padding: 8px 20px;
+  border: none;
+  background: #4A90E2;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.nav-btn:hover { background: #357ABD; }
+.nav-btn:disabled { background: #ccc; cursor: not-allowed; }
+</style>
+</head>
+<body>
+<div id="header">
+  <div class="header-top">
+    <div class="header-logo">
+      <img src="USNI_News_Logo.png" alt="USNI News" onerror="this.style.display='none';">
+      <span class="header-title">Western Pacific Pulse</span>
+    </div>
+  </div>
+  <div class="red-bar"></div>
+</div>
+<div id="map"></div>
+<div class="source">Source: JSDF / USNI News</div>
+<div class="legend">
+  <div style="font-weight: 600; margin-bottom: 8px;">Naval & Air Activity</div>
+  <div class="legend-item"><div class="legend-dot" style="background: #dc2626;"></div><span>PLAN (China)</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background: #8b5cf6;"></div><span>Russian Navy</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background: #0891b2;"></div><span>US Navy / Forces</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background: #1e40af;"></div><span>Royal Navy (UK)</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background: #f59e0b;"></div><span>JMSDF (Japan)</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background: #16a34a;"></div><span>ROKN / Allied</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background: #64748b;"></div><span>International</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background: #84cc16;"></div><span>Exercise</span></div>
+</div>
+<div id="controls">
+  <div class="current-date" id="currentDate">
+    <div style="font-size: 20px; font-weight: 600;">Loading...</div>
+    <div style="font-size: 14px; color: #666; margin-top: 4px;"></div>
+  </div>
+  <input type="range" id="incidentSlider" class="incident-slider" min="0" max="16" value="0" step="1">
+  <div class="nav-buttons">
+    <button class="nav-btn" id="prevBtn" onclick="previousIncident()">← Previous</button>
+    <button class="nav-btn" id="nextBtn" onclick="nextIncident()">Next →</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+const map = L.map('map').setView([25.0, 125.0], 5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors',
+  maxZoom: 19
+}).addTo(map);
+
+const incidents = [
+  {
+    id: 1,
+    fullDate: "June 19–20, 2026",
+    vessel: "PLAN-531",
+    vesselShort: "CNS Xiangtan (531) — Jiangkai II-class frigate",
+    color: "#dc2626",
+    lat: 29.10,
+    lon: 129.60,
+    location: "Between Amami Oshima and Yokoate-jima",
+    direction: "Sighted June 19 heading southeast in an area 230 km west of Yokoate-jima, then transited northeast between Amami Oshima and Yokoate-jima to enter the Pacific Ocean. Monitored by JMSDF P-3C Orion (Fleet Air Wing 5, Naha)."
+  },
+  {
+    id: 2,
+    fullDate: "June 21, 2026",
+    vessel: "Resolute-Dragon",
+    vesselShort: "Resolute Dragon 26 — USMC / JGSDF",
+    color: "#84cc16",
+    lat: 33.50,
+    lon: 130.50,
+    location: "Various locations, Japan",
+    direction: "Exercise Resolute Dragon 26 began Saturday, led by III Marine Expeditionary Force and JGSDF Western Army. Runs until June 30. Focuses on bilateral interoperability for island defense operations."
+  },
+  {
+    id: 3,
+    fullDate: "June 22, 2026",
+    vessel: "VS26-Guam",
+    vesselShort: "Valiant Shield 2026",
+    color: "#84cc16",
+    lat: 13.44,
+    lon: 144.79,
+    location: "Guam / CNMI / Japan / Mariana Islands Range Complex",
+    direction: "Exercise Valiant Shield 2026 began Monday with Australia, Japan, Canada and New Zealand joining the U.S. Activities include ASW with George Washington CSG (CVN-73, CG-62, DDG-65, DDG-86), JS Kaga (DDH-184), JS Fuyuzuki (DD-118), HMCS Charlottetown (FFH339) and P-8A MPAs tracking USS Minnesota (SSN-783) and JS Jingei (SS-515). Fighter training: VMFA-242 F-35Bs, USAF F-22s and JASDF F-15Js flew formation over the Pacific. MQ-28 Ghost Bat CCA trials at Rota. 12th MLR bilateral SUAS training with JGSDF on Tokunoshima."
+  },
+  {
+    id: 4,
+    fullDate: "June 23, 2026",
+    vessel: "PLAN-Fujian",
+    vesselShort: "CNS Fujian (18) — Taiwan Strait transit",
+    color: "#dc2626",
+    lat: 24.50,
+    lon: 120.30,
+    location: "Taiwan Strait",
+    direction: "PLAN carrier CNS Fujian (18) transited south through the Taiwan Strait on Tuesday. China Ministry of National Defense confirmed the transit Thursday, describing it as routine training."
+  },
+  {
+    id: 5,
+    fullDate: "June 23, 2026",
+    vessel: "DPRK-ChoeHyon",
+    vesselShort: "North Korea commissions destroyer Choe Hyon (51)",
+    color: "#64748b",
+    lat: 38.74,
+    lon: 125.38,
+    location: "Nampho, North Korea",
+    direction: "North Korea commissioned its largest warship to date, the 5,000-ton destroyer Choe Hyon (51), in a ceremony at Nampho on the west coast. The commissioning was overseen by leader Kim Jong Un."
+  },
+  {
+    id: 6,
+    fullDate: "June 23, 2026",
+    vessel: "PLAN-83TG",
+    vesselShort: "83rd PLAN Task Group — CNS Qi Jiguang (83) + CNS Kunlunshan (998)",
+    color: "#dc2626",
+    lat: 43.11,
+    lon: 131.88,
+    location: "Vladivostok, Russia",
+    direction: "PLAN training ship CNS Qi Jiguang (83) and amphibious transport dock CNS Kunlunshan (998) arrived in Vladivostok on Tuesday for a 4-day port visit. The group departed Qingdao on June 15 with 400 midshipmen and instructors embarked."
+  },
+  {
+    id: 7,
+    fullDate: "June 23, 2026",
+    vessel: "RFS-Magadan",
+    vesselShort: "RFS Magadan (B-602) — Improved Kilo-class submarine",
+    color: "#8b5cf6",
+    lat: 43.09,
+    lon: 131.85,
+    location: "Vladivostok, Russia",
+    direction: "Russian Pacific Fleet attack submarine RFS Magadan (B-602) returned to Vladivostok on Wednesday after a patrol that began in December 2025, including a 40-day at-sea operational mission in the final stage."
+  },
+  {
+    id: 8,
+    fullDate: "June 23, 2026",
+    vessel: "HMLA-367-Seay",
+    vesselShort: "HMLA-367 — Deck landing qualifications, USNS Seay",
+    color: "#0891b2",
+    lat: 26.45,
+    lon: 127.96,
+    location: "Kin Bay, Okinawa",
+    direction: "Marine Light Attack Helicopter Squadron 367 (MAG-39, 3rd MAW) conducted UH-1Y Venom deck landing qualifications aboard prepositioning ship USNS Seay (T-AKR-302) at Kin Bay, Okinawa on Monday."
+  },
+  {
+    id: 9,
+    fullDate: "June 24, 2026",
+    vessel: "PLAN-117",
+    vesselShort: "CNS Xining (117) — Luyang III-class destroyer",
+    color: "#dc2626",
+    lat: 33.85,
+    lon: 128.85,
+    location: "Tsushima Strait",
+    direction: "Sighted at 3 p.m. Wednesday heading northeast ~80 km southwest of Tsushima, then confirmed transiting Tsushima Strait into the Sea of Japan. Monitored by JMSDF multipurpose support ship JS Hiuchi (AMS-4301, 1st Surface Training Support Squadron, Maizuru)."
+  },
+  {
+    id: 10,
+    fullDate: "June 24, 2026",
+    vessel: "PLAN-Liaoning",
+    vesselShort: "PLAN Liaoning CSG — returned to Qingdao",
+    color: "#dc2626",
+    lat: 36.07,
+    lon: 120.38,
+    location: "Qingdao, China",
+    direction: "Liaoning CSG — CNS Liaoning (16), cruiser CNS Wuxi (104), destroyer CNS Kaifeng (124), frigate CNS Luohe (545) and fast combat support ship CNS Hulunhu (901) — returned to Qingdao Monday after a 40-day deployment in the South China Sea and Philippine Sea. China accused Japan of provocation during its shadowing of the CSG; Japan's Joint Staff Office disputed the claim."
+  },
+  {
+    id: 11,
+    fullDate: "June 25, 2026",
+    vessel: "PLAN-119",
+    vesselShort: "CNS Guiyang (119) — Luyang III-class destroyer",
+    color: "#dc2626",
+    lat: 33.70,
+    lon: 128.70,
+    location: "Tsushima Strait",
+    direction: "Sighted at 2 p.m. Thursday heading northeast ~70 km southwest of Tsushima, then confirmed transiting Tsushima Strait into the Sea of Japan. Monitored by JMSDF multipurpose support ship JS Hiuchi (AMS-4301, 1st Surface Training Support Squadron, Maizuru)."
+  },
+  {
+    id: 12,
+    fullDate: "June 25, 2026",
+    vessel: "RU-Tarantul",
+    vesselShort: "RFS R-20 (921) + RFS R-14 (924) + Amga-class supply ship",
+    color: "#8b5cf6",
+    lat: 45.45,
+    lon: 141.20,
+    location: "La Pérouse (Sōya) Strait",
+    direction: "Three-vessel group sighted at 4 a.m. Thursday sailing east ~50 km northwest of Rebun Island, then transited La Pérouse Strait — separating Hokkaido from Russia's Sakhalin Island — to enter the Sea of Okhotsk. Monitored by JMSDF fast attack craft JS Wakataka (PG-825, 5th Patrol Security Squadron, Ōminato)."
+  },
+  {
+    id: 13,
+    fullDate: "Week of June 26, 2026",
+    vessel: "Boxer-ARG",
+    vesselShort: "USS Boxer ARG — Indian Ocean",
+    color: "#0891b2",
+    lat: 5.00,
+    lon: 75.00,
+    location: "Indian Ocean",
+    direction: "USS Boxer (LHD-4) and USS Portland (LPD-27) departed Singapore over the weekend, transited the Malacca Strait and joined USS John L. Canley (ESB-6) and USNS Pililaau (T-AKR-304) in the Indian Ocean on Wednesday. The Boxer ARG also includes USS Comstock with the embarked 11th Marine Expeditionary Unit. Comstock operating with U.S. 5th Fleet."
+  },
+  {
+    id: 14,
+    fullDate: "Week of June 26, 2026",
+    vessel: "HMS-Tamar",
+    vesselShort: "HMS Tamar (P233) — departed Jakarta",
+    color: "#1e40af",
+    lat: -6.19,
+    lon: 106.82,
+    location: "Tanjung Priok, Jakarta, Indonesia",
+    direction: "Royal Navy offshore patrol vessel HMS Tamar (P233) departed Tanjung Priok, Jakarta on Saturday after completing a four-day port visit."
+  },
+  {
+    id: 15,
+    fullDate: "Week of June 26, 2026",
+    vessel: "KAMANDAG-10",
+    vesselShort: "KAMANDAG 10",
+    color: "#84cc16",
+    lat: 9.84,
+    lon: 118.74,
+    location: "Palawan, Philippines",
+    direction: "MRF-D, MRF-SEA, 3rd MLR, Philippine Marine Corps and multinational participants are conducting KAMANDAG 10 (Jun. 15–Jul. 10). U.S., Philippine Marines, JGSDF and ROK Marines taking part — 2,000 personnel total. On Monday an airfield seizure demonstration was carried out at Berong Airfield, Palawan."
+  },
+  {
+    id: 16,
+    fullDate: "June 26, 2026",
+    vessel: "RIMPAC-2026",
+    vesselShort: "RIMPAC 2026 — 30-nation exercise",
+    color: "#84cc16",
+    lat: 21.31,
+    lon: -157.86,
+    location: "Hawaii",
+    direction: "RIMPAC 2026 began Thursday and runs to July 31. 30 nations, 31 surface ships, 5 submarines, 197 aircraft and ~30,000 personnel. U.S. lead: USS Theodore Roosevelt (CVN-71) with CVW-9, USS Chosin (CG-65), USS Paul Hamilton (DDG-60), USS Decatur (DDG-73), USS Wayne E. Meyer (DDG-108), USS Carl M. Levin (DDG-120), USS Essex (LHD-2), USS Charlotte (SSN-766), USS Columbia (SSN-771), USNS Tippecanoe, USNS Guadalupe, USNS Washington Chambers and USCGC Kimball (WMSL-756)."
+  },
+  {
+    id: 17,
+    fullDate: "Week of June 26, 2026",
+    vessel: "Southern-Jackaroo",
+    vesselShort: "Southern Jackaroo 2026 — U.S. / Australia / Japan",
+    color: "#84cc16",
+    lat: -19.26,
+    lon: 146.81,
+    location: "Townsville, Australia",
+    direction: "MRF-D and U.S. Army 11th Airborne Division are participating in Southern Jackaroo 2026 (May 29–Jul. 3) alongside Australian 3rd Brigade and JGSDF 7th Infantry Regiment / 3rd Division. Focus: combined arms integration and interoperability. Recent activity included a joint river crossing exercise using Australian tank bridge."
+  }
+];
+
+let currentIncidentIndex = 0;
+let markers = [];
+
+const slider = document.getElementById('incidentSlider');
+slider.addEventListener('input', (e) => {
+  displayIncident(parseInt(e.target.value));
+});
+
+function updateSliderProgress() {
+  const progress = (currentIncidentIndex / (incidents.length - 1)) * 100;
+  slider.style.setProperty('--progress', `${progress}%`);
+}
+
+function displayIncident(incidentIndex) {
+  currentIncidentIndex = incidentIndex;
+  slider.value = incidentIndex;
+  updateSliderProgress();
+
+  markers.forEach(marker => map.removeLayer(marker));
+  markers = [];
+
+  const currentIncident = incidents[incidentIndex];
+
+  document.getElementById('currentDate').innerHTML = `
+    <div style="font-size: 20px; font-weight: 600;">${currentIncident.fullDate}</div>
+    <div style="font-size: 14px; color: #666; margin-top: 4px;">${currentIncident.vesselShort} — ${currentIncident.location}</div>
+  `;
+
+  incidents.forEach((incident, i) => {
+    const isFuture = i > incidentIndex;
+    const isCurrent = i === incidentIndex;
+
+    const marker = L.circleMarker([incident.lat, incident.lon], {
+      radius: isCurrent ? 10 : 6,
+      fillColor: incident.color,
+      color: isFuture ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.4)',
+      weight: 2,
+      opacity: isFuture ? 0.3 : 1,
+      fillOpacity: isFuture ? 0.2 : (isCurrent ? 0.9 : 0.6)
+    }).bindPopup(`
+      <strong>${incident.vesselShort}</strong><br>
+      ${incident.location}<br>
+      ${incident.direction}<br>
+      <em>${incident.fullDate}</em>
+    `);
+
+    marker.addTo(map);
+    markers.push(marker);
+  });
+
+  drawPaths(incidentIndex);
+
+  document.getElementById('prevBtn').disabled = incidentIndex === 0;
+  document.getElementById('nextBtn').disabled = incidentIndex === incidents.length - 1;
+}
+
+function drawPaths(upToIndex) {
+  const vesselPaths = {};
+  for (let i = 0; i <= upToIndex; i++) {
+    const incident = incidents[i];
+    if (!vesselPaths[incident.vessel]) vesselPaths[incident.vessel] = [];
+    vesselPaths[incident.vessel].push({ lat: incident.lat, lon: incident.lon, color: incident.color });
+  }
+  Object.keys(vesselPaths).forEach(vessel => {
+    const points = vesselPaths[vessel];
+    if (points.length > 1) {
+      const path = L.polyline(points.map(p => [p.lat, p.lon]), {
+        color: points[0].color,
+        weight: 2,
+        opacity: 0.4,
+        dashArray: '5, 10'
+      });
+      path.addTo(map);
+      markers.push(path);
+    }
+  });
+}
+
+function previousIncident() {
+  if (currentIncidentIndex > 0) displayIncident(currentIncidentIndex - 1);
+}
+
+function nextIncident() {
+  if (currentIncidentIndex < incidents.length - 1) displayIncident(currentIncidentIndex + 1);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') previousIncident();
+  if (e.key === 'ArrowRight') nextIncident();
+});
+
+// Fit to Western Pacific core only — exclude Indian Ocean outlier
+const coreBounds = incidents
+  .filter(inc => inc.lon > 100 && inc.lon < 160 && inc.lat > -25 && inc.lat < 50)
+  .map(inc => [inc.lat, inc.lon]);
+
+map.fitBounds(L.latLngBounds(coreBounds), { padding: [60, 60] });
+
+displayIncident(0);
+</script>
+</body>
+</html>

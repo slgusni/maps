@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>USS Gerald R. Ford – Deployment Route</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { 
+  background:#1a3a52; 
+  display:flex; 
+  align-items:center; 
+  justify-content:center; 
+  min-height:100vh;
+  overflow-x: hidden;
+}
+
+#wrapper {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  position: relative;
+}
+
+#container { 
+  position:relative; 
+  width: 100%;
+  padding-bottom: 56.25%;
+  overflow:hidden; 
+  background:#1a3a52;
+}
+
+#container > * {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+canvas { 
+  position:absolute; 
+  top:0; 
+  left:0;
+  width: 100%;
+  height: 100%;
+}
+
+#label-div { 
+  position:absolute; 
+  top:0; 
+  left:0; 
+  width:100%; 
+  height:100%; 
+  pointer-events:none; 
+}
+
+.wp-label {
+  position:absolute;
+  color:#ffffff;
+  font-size: clamp(10px, 1.5vw, 13px);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity:0;
+  white-space:nowrap;
+  text-shadow:1px 1px 2px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.8);
+  transition:opacity 0.3s ease;
+  line-height:1.4;
+}
+
+#title {
+  position:absolute;
+  top: 2%; 
+  left: 3%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  z-index: 10;
+}
+
+#title h1 { 
+  font-size: clamp(14px, 2.2vw, 18px); 
+  font-weight: 700; 
+  letter-spacing: -0.01em; 
+  color: #ffffff; 
+  line-height: 1.2;
+}
+
+#title p { 
+  font-size: clamp(11px, 1.6vw, 14px); 
+  font-weight: 500; 
+  color: #cccccc; 
+  margin-top: 0.35em; 
+  letter-spacing: 0.01em; 
+}
+
+#logo {
+  position: absolute;
+  bottom: 5%;
+  left: 3%;
+  z-index: 10;
+}
+
+#logo img {
+  height: clamp(30px, 4vw, 50px);
+  width: auto;
+}
+
+#status {
+  position:absolute; 
+  top:50%; 
+  left:50%;
+  transform:translate(-50%,-50%);
+  color:rgba(0,0,0,0.4);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: clamp(12px, 2vw, 14px);
+  font-weight: 500;
+  z-index: 5;
+}
+
+#slider-container {
+  position: absolute;
+  top: calc(100% - 30px);
+  left: 5%;
+  right: 5%;
+  z-index: 10;
+  padding: 0 10px;
+}
+
+#progress-slider {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+#progress-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #f4c430;
+  border: 2px solid #1a3a52;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#progress-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #f4c430;
+  border: 2px solid #1a3a52;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 0;
+  }
+  
+  #wrapper {
+    width: 100vw;
+  }
+  
+  #title {
+    top: 1%;
+    left: 2%;
+  }
+  
+  .wp-label {
+    font-size: 10px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  #wrapper {
+    width: 95vw;
+  }
+}
+
+@media (min-width: 1025px) {
+  #wrapper {
+    width: 90vw;
+    max-width: 1280px;
+  }
+}
+
+@media (max-width: 480px) {
+  #title h1 {
+    font-size: 12px;
+  }
+  
+  #title p {
+    font-size: 10px;
+  }
+  
+  .wp-label {
+    font-size: 9px;
+  }
+  
+  #slider-container {
+    top: calc(100% - 25px);
+    left: 3%;
+    right: 3%;
+  }
+  
+  #progress-slider {
+    height: 5px;
+  }
+}
+</style>
+</head>
+<body>
+<div id="wrapper">
+  <div id="container">
+    <canvas id="map-canvas" width="1280" height="720"></canvas>
+    <canvas id="route-canvas" width="1280" height="720"></canvas>
+    <div id="label-div"></div>
+    <div id="title">
+      <h1>USS Gerald R. Ford (CVN-78)</h1>
+      <p>June 24, 2025 &ndash; May 16, 2026</p>
+    </div>
+    
+    <div id="slider-container">
+      <input type="range" id="progress-slider" min="0" max="100" value="0" step="0.1">
+    </div>
+    
+    <div id="status">Loading map&hellip;</div>
+  </div>
+</div>
+
+<script>
+(function() {
+
+var ROUTE_COLOR = '#FFD700';
+var DOT_COLOR   = '#FFD700';
+var DOT_STROKE  = '#1a3a52';
+
+// Exact coordinates from KML file with location labels
+var WAYPOINTS = [
+  { label:"Norfolk, Va.",        lat:36.8796204,  lon:-76.0693362,  anchor:"right" },
+  { label:"",                    lat:36.0255703,  lon:-55.2524635,  anchor:"" },
+  { label:"",                    lat:37.2406536,  lon:-27.0961646,  anchor:"" },
+  { label:"",                    lat:35.7110344,  lon:-10.0634769,  anchor:"" },
+  { label:"Strait of Gibraltar", lat:37.6144232,  lon:1.7138669,    anchor:"above" },
+  { label:"",                    lat:43.4849878,  lon:5.3173825,    anchor:"" },
+  { label:"",                    lat:38.3073705,  lon:9.0087888,    anchor:"" },
+  { label:"",                    lat:35.8536358,  lon:-13.2275394,  anchor:"" },
+  { label:"",                    lat:45.1822075,  lon:-12.3486331,  anchor:"" },
+  { label:"",                    lat:49.582383,   lon:-3.9111331,   anchor:"" },
+  { label:"",                    lat:50.9308906,  lon:1.3623044,    anchor:"" },
+  { label:"",                    lat:58.9727919,  lon:2.7685544,    anchor:"" },
+  { label:"North Sea",           lat:65.2751948,  lon:5.4931638,    anchor:"right" },
+  { label:"",                    lat:56.6321969,  lon:3.6474606,    anchor:"" },
+  { label:"",                    lat:50.9308906,  lon:1.3623044,    anchor:"" },
+  { label:"",                    lat:48.8937745,  lon:-5.9326175,   anchor:"" },
+  { label:"",                    lat:42.4560662,  lon:-13.4912112,  anchor:"" },
+  { label:"",                    lat:35.6396378,  lon:-8.2177737,   anchor:"" },
+  { label:"Palma de Mallorca",   lat:38.4451743,  lon:5.3173825,    anchor:"below" },
+  { label:"",                    lat:36.1380702,  lon:14.106445,    anchor:"" },
+  { label:"Mediterranean Sea",   lat:36.8446545,  lon:18.5888669,   anchor:"above" },
+  { label:"",                    lat:41.2779884,  lon:18.6767575,   anchor:"" },
+  { label:"Split, Croatia",      lat:44.1823776,  lon:14.106445,    anchor:"right" },
+  { label:"",                    lat:40.3467286,  lon:18.9404294,   anchor:"" },
+  { label:"",                    lat:36.8446545,  lon:18.5888669,   anchor:"" },
+  { label:"",                    lat:38.8570086,  lon:13.6669919,   anchor:"" },
+  { label:"",                    lat:36.9851965,  lon:0.1318356,    anchor:"" },
+  { label:"",                    lat:32.7320445,  lon:-18.6767581,  anchor:"" },
+  { label:"Cape Verde",          lat:29.817982,   lon:-25.626786,   anchor:"left" },
+  { label:"",                    lat:27.0358599,  lon:-38.986161,   anchor:"" },
+  { label:"",                    lat:23.3787888,  lon:-45.4900673,  anchor:"" },
+  { label:"",                    lat:18.7879886,  lon:-54.1033485,  anchor:"" },
+  { label:"",                    lat:15.2589846,  lon:-64.4744423,  anchor:"" },
+  { label:"Caribbean Sea",       lat:15.2589846,  lon:-68.8689735,  anchor:"above" },
+  { label:"",                    lat:19.7834749,  lon:-57.0916298,  anchor:"" },
+  { label:"",                    lat:29.6653563,  lon:-30.7244423,  anchor:"" },
+  { label:"",                    lat:35.6396378,  lon:-8.2177737,   anchor:"" },
+  { label:"",                    lat:37.6979235,  lon:7.0685265,    anchor:"" },
+  { label:"",                    lat:37.9755735,  lon:11.638839,    anchor:"" },
+  { label:"",                    lat:35.0086027,  lon:20.076339,    anchor:"" },
+  { label:"",                    lat:32.6728793,  lon:28.3380577,   anchor:"" },
+  { label:"Suez Canal",          lat:30.5776062,  lon:32.3810265,   anchor:"right" },
+  { label:"Red Sea",             lat:26.4078334,  lon:35.3693077,   anchor:"right" },
+  { label:"",                    lat:32.079058,   lon:29.920089,    anchor:"" },
+  { label:"Souda Bay, Crete",    lat:44.1823776,  lon:14.106445,    anchor:"above" },
+  { label:"",                    lat:26.4078334,  lon:35.3693077,   anchor:"" },
+  { label:"",                    lat:32.079058,   lon:29.920089,    anchor:"" },
+  { label:"",                    lat:36.5769137,  lon:16.9122765,   anchor:"" },
+  { label:"",                    lat:37.9755735,  lon:3.5529015,    anchor:"" },
+  { label:"",                    lat:34.4306748,  lon:-13.8494423,  anchor:"" },
+  { label:"",                    lat:36.1522667,  lon:-24.3963173,  anchor:"" },
+  { label:"",                    lat:35.2960482,  lon:-60.079911,   anchor:"" },
+  { label:"Norfolk, Va.",        lat:36.8796204,  lon:-76.0693362,  anchor:"right" }
+];
+
+var W = 1280, H = 720;
+var currentProgress = 0;
+
+function loadScript(src, cb) {
+  var s = document.createElement('script');
+  s.src = src;
+  s.onload = cb;
+  s.onerror = function() {
+    document.getElementById('status').textContent = 'Failed to load: ' + src;
+  };
+  document.head.appendChild(s);
+}
+
+loadScript(
+  'https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js',
+  function() {
+    loadScript(
+      'https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js',
+      function() { start(); }
+    );
+  }
+);
+
+function start() {
+  var projection = d3.geoNaturalEarth1()
+    .rotate([-15, 0])
+    .scale(185)
+    .translate([W/2, H/2 + 20]);
+
+  var projected = WAYPOINTS.map(function(w) {
+    var pt = projection([w.lon, w.lat]);
+    return { label:w.label, anchor:w.anchor, x:pt[0], y:pt[1] };
+  });
+
+  var mapCanvas  = document.getElementById('map-canvas');
+  var mCtx       = mapCanvas.getContext('2d');
+  var routeCanvas = document.getElementById('route-canvas');
+  var labelDiv   = document.getElementById('label-div');
+  var statusEl   = document.getElementById('status');
+  var progressSlider = document.getElementById('progress-slider');
+
+  progressSlider.addEventListener('input', function(e) {
+    var progress = parseFloat(e.target.value) / 100;
+    currentProgress = progress;
+    redraw(progress);
+  });
+
+  var labelEls = [];
+  projected.forEach(function(wp, i) {
+    if (!wp.label) return;
+    var el = document.createElement('div');
+    el.className = 'wp-label';
+    var ox = 0, oy = 0;
+    if (wp.anchor === 'right')  { ox = 10;  oy = -6; }
+    if (wp.anchor === 'left')   { ox = -10; oy = -6; el.style.transform = 'translateX(-100%)'; }
+    if (wp.anchor === 'above')  { ox = 0;   oy = -22; el.style.transform = 'translateX(-50%)'; }
+    if (wp.anchor === 'below')  { ox = 0;   oy = 14;  el.style.transform = 'translateX(-50%)'; }
+    
+    var leftPercent = ((wp.x + ox) / W) * 100;
+    var topPercent = ((wp.y + oy) / H) * 100;
+    
+    el.style.left = leftPercent + '%';
+    el.style.top  = topPercent + '%';
+    el.textContent = wp.label;
+    labelDiv.appendChild(el);
+    labelEls.push({ el:el, index:i });
+  });
+
+  var pathGen = d3.geoPath(projection, mCtx);
+
+  fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+    .then(function(r) { return r.json(); })
+    .then(function(world) {
+      statusEl.style.display = 'none';
+
+      mCtx.fillStyle = '#1a3a52';
+      mCtx.fillRect(0, 0, W, H);
+
+      var countries = topojson.feature(world, world.objects.countries);
+      mCtx.beginPath();
+      pathGen(countries);
+      mCtx.fillStyle = '#2d5a73';
+      mCtx.fill();
+      mCtx.strokeStyle = '#4a7a93';
+      mCtx.lineWidth = 0.5;
+      mCtx.stroke();
+
+      redraw(0);
+      
+      handleResize();
+      window.addEventListener('resize', handleResize);
+    })
+    .catch(function(e) {
+      statusEl.textContent = 'Map data failed to load. Check your internet connection.';
+    });
+
+  function handleResize() {
+    redraw(currentProgress);
+  }
+
+  function redraw(t) {
+    var rCtx = routeCanvas.getContext('2d');
+    
+    rCtx.clearRect(0, 0, W, H);
+    var segments = projected.length - 1;
+    var total = t * segments;
+    var full  = Math.floor(total);
+    var frac  = total - full;
+
+    rCtx.lineJoin = 'round';
+    rCtx.lineCap  = 'round';
+    rCtx.strokeStyle = ROUTE_COLOR;
+    rCtx.lineWidth = 2;
+    rCtx.setLineDash([6, 4]);
+
+    for (var i = 0; i < full && i < segments; i++) {
+      rCtx.beginPath();
+      rCtx.moveTo(projected[i].x, projected[i].y);
+      rCtx.lineTo(projected[i+1].x, projected[i+1].y);
+      rCtx.stroke();
+      drawArrow(rCtx, projected[i], projected[i+1], 1.0);
+    }
+
+    if (full < segments) {
+      var a = projected[full], b = projected[full+1];
+      var ex = a.x + (b.x - a.x) * frac;
+      var ey = a.y + (b.y - a.y) * frac;
+      rCtx.beginPath();
+      rCtx.moveTo(a.x, a.y);
+      rCtx.lineTo(ex, ey);
+      rCtx.stroke();
+      if (frac > 0.4) drawArrow(rCtx, a, { x:ex, y:ey }, frac);
+    }
+
+    rCtx.setLineDash([]);
+    for (var j = 0; j <= Math.min(full, segments); j++) {
+      var wp  = projected[j];
+      var big = (j === 0 || j === segments);
+      rCtx.beginPath();
+      rCtx.arc(wp.x, wp.y, big ? 5.5 : 4, 0, Math.PI*2);
+      rCtx.fillStyle = DOT_COLOR;
+      rCtx.fill();
+      rCtx.strokeStyle = DOT_STROKE;
+      rCtx.lineWidth = 1.5;
+      rCtx.stroke();
+    }
+
+    // Find which labels should be shown
+    var lastReachedWithLabel = -1;
+    labelEls.forEach(function(obj) {
+      if (obj.index <= full) {
+        lastReachedWithLabel = obj.index;
+      }
+    });
+    
+    // Display labels
+    labelEls.forEach(function(obj) {
+      obj.el.style.opacity = (obj.index === lastReachedWithLabel) ? '1' : '0';
+    });
+  }
+
+  function drawArrow(ctx, a, b, alpha) {
+    var dx = b.x - a.x, dy = b.y - a.y;
+    var len = Math.sqrt(dx*dx + dy*dy);
+    if (len < 14) return;
+    var ux = dx/len, uy = dy/len;
+    var mx = (a.x+b.x)/2, my = (a.y+b.y)/2;
+    var s = 6;
+    ctx.save();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = ROUTE_COLOR;
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(mx + ux*s - uy*s*0.5, my + uy*s + ux*s*0.5);
+    ctx.lineTo(mx + ux*s,            my + uy*s           );
+    ctx.lineTo(mx + ux*s + uy*s*0.5, my + uy*s - ux*s*0.5);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  window.updateMapProgress = function(progress) {
+    currentProgress = Math.max(0, Math.min(1, progress));
+    progressSlider.value = currentProgress * 100;
+    redraw(currentProgress);
+  };
+}
+
+})();
+</script>
+</body>
+</html>
