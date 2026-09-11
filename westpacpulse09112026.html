@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Western Pacific Pulse &mdash; Week of September 11, 2026</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; height:100%; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+  #wrap { display:flex; flex-direction:column; height:100vh; min-height:520px; }
+
+  header { background:#2d2d2d; color:#fff; padding:8px 12px 6px; display:flex; align-items:center; gap:12px; flex:0 0 auto; }
+  header img { height:26px; width:auto; display:block; }
+  .htxt h1 { margin:0; font-size:15px; font-weight:700; letter-spacing:.02em; }
+  .htxt .date { margin:0 0 2px; font-size:10px; font-weight:700; letter-spacing:.1em;
+                text-transform:uppercase; color:#e8687d; }
+  .htxt p  { margin:2px 0 0; font-size:11px; color:#b8b8b8; }
+  .accent { height:4px; background:#c8102e; flex:0 0 auto; }
+
+  #mapshell { position:relative; flex:1 1 auto; min-height:240px; }
+  #map { position:absolute; inset:0; background:#dfe6ec; }
+
+  /* Text block, left side of the map */
+  #card { position:absolute; top:10px; left:10px; width:320px; max-width:calc(100% - 20px);
+          max-height:calc(100% - 20px); overflow-y:auto; background:rgba(255,255,255,.96);
+          border:1px solid #ccc; border-left:4px solid #c8102e; border-radius:3px;
+          padding:10px 12px; z-index:600; box-shadow:0 1px 6px rgba(0,0,0,.25);
+          text-align:left; }
+  #card .force { font-size:9.5px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:#fff;
+                 display:inline-block; padding:2px 6px; border-radius:2px; text-align:left; }
+  #card h2 { margin:7px 0 2px; font-size:14.5px; line-height:1.25; color:#1a1a1a; text-align:left; }
+  #card .loc { font-size:11px; color:#666; margin:0 0 6px; font-weight:600; text-align:left; }
+  #card #c-text { margin:0; font-size:12px; line-height:1.5; color:#333; text-align:left; }
+
+  #legend { position:absolute; bottom:10px; right:10px; background:rgba(255,255,255,.94); border:1px solid #ccc;
+            border-radius:3px; padding:7px 9px; z-index:600; font-size:10.5px; color:#333; line-height:1.55;
+            text-align:left; }
+  #legend b { display:block; font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:#666; margin-bottom:3px; }
+  #legend span.k { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:middle; }
+
+  #ctrl { flex:0 0 auto; background:#2d2d2d; color:#fff; padding:8px 12px 10px; }
+  .row { display:flex; align-items:center; gap:9px; }
+  button { background:#4a4a4a; color:#fff; border:1px solid #6a6a6a; border-radius:3px; font-size:12px;
+           padding:4px 10px; cursor:pointer; min-width:34px; }
+  button:hover { background:#c8102e; border-color:#c8102e; }
+  button:focus-visible { outline:2px solid #fff; outline-offset:1px; }
+  input[type=range] { flex:1 1 auto; accent-color:#c8102e; height:20px; }
+  #counter { font-size:11px; color:#b8b8b8; white-space:nowrap; min-width:96px; text-align:right; }
+  #tick { font-size:11px; color:#e6e6e6; margin-top:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  @media (max-width:640px){
+    /* Anchor to the bottom of the map area. Must stay positioned, or z-index
+       is ignored and the card renders beneath the Leaflet tiles. */
+    #card { top:auto; bottom:0; left:0; right:0; width:auto; max-width:none;
+            max-height:46%; overflow-y:auto;
+            border:none; border-top:4px solid #c8102e; border-radius:0;
+            box-shadow:0 -2px 8px rgba(0,0,0,.28); padding:9px 12px 11px; }
+    #card h2 { font-size:13.5px; }
+    /* Legend moves up top so it doesn't sit behind the card */
+    #legend { top:10px; bottom:auto; right:10px; font-size:9.5px; padding:5px 7px; line-height:1.45; }
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+
+  <header>
+    <img src="USNI_News_Logo.png" alt="USNI News">
+    <div class="htxt">
+      <p class="date">Week of September 11, 2026</p>
+      <h1>Western Pacific Pulse</h1>
+      <p>Naval and air activity across the Indo-Pacific</p>
+    </div>
+  </header>
+  <div class="accent"></div>
+
+  <div id="mapshell">
+    <div id="map"></div>
+    <div id="card">
+      <span class="force" id="c-force"></span>
+      <h2 id="c-title"></h2>
+      <p class="loc" id="c-loc"></p>
+      <p id="c-text"></p>
+    </div>
+    <div id="legend">
+      <b>Forces</b>
+      <div><span class="k" style="background:#dc2626"></span>PLA / China</div>
+      <div><span class="k" style="background:#8b5cf6"></span>Russian Navy</div>
+      <div><span class="k" style="background:#0891b2"></span>U.S. Navy</div>
+      <div><span class="k" style="background:#f59e0b"></span>JMSDF</div>
+      <div><span class="k" style="background:#1e40af"></span>Royal Navy</div>
+      <div><span class="k" style="background:#FF6B35"></span>DPRK</div>
+      <div><span class="k" style="background:#16a34a"></span>Allied / partner navies</div>
+      <div><span class="k" style="background:#84cc16"></span>Exercises &amp; training</div>
+    </div>
+  </div>
+
+  <div id="ctrl">
+    <div class="row">
+      <button id="prev" aria-label="Previous incident">&#9664;</button>
+      <button id="play" aria-label="Play sequence">&#9654;</button>
+      <button id="next" aria-label="Next incident">&#9654;&#9654;</button>
+      <input type="range" id="slider" min="0" max="0" value="0" step="1" aria-label="Step through incidents">
+      <div id="counter"></div>
+    </div>
+    <div id="tick"></div>
+  </div>
+
+</div>
+
+<script>
+/* ---------- Week of September 11, 2026 ----------
+   Each caption is the opening sentence of the filed editorial copy, unedited.
+   Marker positions are the uploaded KML placemarks except where noted. */
+const WEEK = "Week of September 11, 2026";
+
+const incidents = [
+  { force:"U.S. Navy", color:"#0891b2", lat:15.488092, lng:114.404754,
+    vesselShort:"USS Abraham Lincoln (CVN-72), USS Robert Smalls (CG-62), USS Frank E. Petersen Jr. (DDG-121)",
+    location:"In the South China Sea",
+    text:`Aircraft carrier USS Abraham Lincoln (CVN-72), cruiser USS Robert Smalls (CG-62), destroyer USS Frank E. Petersen Jr. (DDG-121) are operating in the South China Sea following their departure from Thailand on Sunday after completing a port visit.` },
+
+  { force:"Exercise / training", color:"#84cc16", lat:4.2314, lng:100.6221,
+    vesselShort:"INS Mysore (D60), KD Lekir (FSG26), KD Gagah Samudera (271)",
+    location:"At Lumut Naval Base, Malaysia",
+    text:`Indian Navy destroyer INS Mysore (D60) arrived Wednesday at Royal Malaysian Navy Lumut Naval Base to join RMN corvette KD Lekir (FSG26) and training ship KD Gagah Samudera (271) for exercise Samudra Laksamana 4/26.` },
+
+  { force:"Royal Navy", color:"#1e40af", lat:5.9844, lng:116.0773,
+    vesselShort:"HMS Tamar (P233), Pacific Partnership 2026",
+    location:"In Kota Kinabalu, Malaysia",
+    text:`The Malaysia phase of the U.S. Navy-led Pacific Partnership 2026 humanitarian and civic assistance mission is ongoing in Kota Kinabalu, Malaysia. Royal Australian Navy amphibious dock landing ship HMAS Choules (L100) completed its assignment as the mission ship and has returned to Australia. Royal Navy offshore patrol vessel HMS Tamar (P233) is docked in Kota Kinabalu to participate in the mission.` },
+
+  { force:"Exercise / training", color:"#84cc16", lat:-6.9175, lng:107.6191,
+    also:[[-4.3003,104.3132],[-4.5586,105.4068]],
+    vesselShort:"Exercise Super Garuda Shield 2026",
+    location:"In Indonesia",
+    text:`U.S. Pacific Command, the Indonesian Armed Forces and personnel from 13 partner nations completed Exercise Super Garuda Shield 2026 on Friday.` },
+
+  { force:"U.S. Navy", color:"#0891b2", lat:-5.60, lng:110.50,
+    vesselShort:"USCGC Charles Moulthrope (WPC-1141), USCGC Emlen Tunnell (WPC-1145), KRI Beladau (643), KRI Siwar (646)",
+    location:"In Indonesia (Java Sea, position approximate)",
+    text:`Coast Guard cutters USCGC Charles Moulthrope (WPC-1141) and USCGC Emlen Tunnell (WPC-1145) transited the Java Sea on Saturday with Indonesian Navy fast attack craft KRI Beladau (643) and KRI Siwar (646) in support of exercise Super Garuda Shield 2026.` },
+
+  { force:"Exercise / training", color:"#84cc16", lat:-4.5586, lng:105.4068,
+    vesselShort:"MRF-D 26 with Indonesian, ROK and JGSDF units",
+    location:"In Indonesia",
+    text:`Marine Rotational Force-Darwin 26 are participating in Super Garuda Shield. Approximately 230 Marines and sailors from MRF-D 26 recently carried out various drills in Lampung, South Sumatera with the Indonesian Marine Corps, Republic of Korea Marine Corps and the Japan Ground Self-Defense Force (JGSDF) Amphibious Rapid Deployment Brigade (ARDB).` },
+
+  { force:"JMSDF", color:"#f59e0b", lat:0.4962, lng:108.8777,
+    vesselShort:"JS Kunisaki (LST-4003)",
+    location:"In Kijing Port, West Kalimantan, Indonesia",
+    text:`Japan Maritime Self-Defense Force amphibious tank landing ship JS Kunisaki (LST-4003) and three embarked Japan JGSDF CH-47 helicopters arrived Thursday in Kijing Port to assist Indonesia with firefighting and relief operations against the ongoing wildfire in the area.` },
+
+  { force:"Russian Navy", color:"#8b5cf6", lat:10.6455, lng:103.5016,
+    vesselShort:"RFS Perekop",
+    location:"In Sihanoukville Autonomous Port, Cambodia",
+    text:`Russian Navy training ship RFS Perekop arrived Friday at Sihanoukville Autonomous Port, Cambodia, for a two day visit, reported Cambodian newspaper Khmer Times.` },
+
+  { force:"Exercise / training", color:"#84cc16", lat:21.2713, lng:110.3589,
+    vesselShort:"RSS Steadfast (70), CNS Dali (553)",
+    location:"In Zhanjiang, China",
+    text:`From Saturday to Wednesday, Republic of Singapore Navy frigate RSS Steadfast (70) and People's Liberation Army Navy frigate CNS Dali (553) conducted a series of maritime security and conventional warfare drills in the waters off Zhanjian, China.` },
+
+  { force:"Exercise / training", color:"#84cc16", lat:13.3824, lng:144.6973,
+    vesselShort:"Pacific Vanguard 2026",
+    location:"In Guam",
+    text:`On Thursday in Guam, maritime forces from the Royal Australian Navy, Royal Canadian Navy, Japan Maritime Self-Defense Force, Royal New Zealand Air Force, Republic of Korea Navy and U.S. Navy concluded maritime exercise Pacific Vanguard 2026.` },
+
+  { force:"DPRK", color:"#FF6B35", lat:39.1539, lng:127.4460,
+    vesselShort:"Kang Kon (52)",
+    location:"In Wonson, North Korea",
+    text:`North Korea commissioned the second of its 5,000-ton Choe Hyon-class destroyer, Kang Kon (52), in a ceremony on Sunday at Wonsan Port.` },
+
+  { force:"Exercise / training", color:"#84cc16", lat:33.4405, lng:127.9850,
+    vesselShort:"Freedom Edge 26",
+    location:"Near South Korea",
+    text:`The U.S., Japan and South Korea carried out trilateral multi-domain exercise Freedom Edge 26 from Monday to Friday.` },
+
+  { force:"JMSDF", color:"#f59e0b", lat:34.2489, lng:132.5655,
+    vesselShort:"JS Hakugei (SS-514)",
+    location:"In Kure, Japan",
+    text:`JMSDF submarine JS Hakugei (SS-514) departed Thursday from JMSDF Kure Naval Base for submarine training for Hawaii.` },
+
+  { force:"U.S. Navy", color:"#0891b2", lat:35.2815, lng:139.6722,
+    vesselShort:"USS Scranton (SSN-756)",
+    location:"In Yokosuka, Japan",
+    text:`Fast attack submarine USS Scranton (SSN-756) pulled into Commander Fleet Activities Yokosuka on Tuesday for rest, resupply and maintenance, according to a notification by the Yokosuka City Council and Japanese ship spotters.` },
+
+  { force:"Allied / partner", color:"#16a34a", lat:35.2650, lng:139.7060,
+    vesselShort:"HMNZS Te Mana (F111), HMNZS Aotearoa (A11)",
+    location:"In Yokosuka, Japan",
+    text:`The Royal New Zealand Navy Task Group docked at the JMSDF Yokosuka Naval Base on Tuesday for resupply and maintenance. The task group includes frigate HMNZS Te Mana (F111) and fleet oiler HMNZS Aotearoa (A11).` },
+
+  { force:"Allied / partner", color:"#16a34a", lat:35.2980, lng:139.6450,
+    vesselShort:"ITS Giovanni delle Bande Nere (P434)",
+    location:"In Yokosuka, Japan",
+    text:`Italian Navy multi-role combat vessel ITS Giovanni delle Bande Nere (P434) departed Monday from JMSDF Yokosuka Naval Base following a port visit that began on Sept. 2, according to Japanese ship spotters.` },
+
+  { force:"Russian Navy", color:"#8b5cf6", lat:26.1202, lng:127.7025,
+    path:[[24.47,132.67],[24.90,131.60],[25.35,130.10],[26.1202,127.7025],[26.60,126.50]],
+    vesselShort:"Surveillance ship Kurily (208)",
+    location:"In Okinawa, Japan",
+    text:`Russian navy surveillance ship Kurily (208) was sighted sailing west 150 kilometers east of Oki-Daito Island at 3 a.m. on Wednesday.` },
+
+  { force:"PLA / China", color:"#dc2626", lat:30.65, lng:127.55,
+    path:[[27.55,122.80],[27.55,125.45],[30.65,127.55],[31.60,125.80],[31.60,124.20]],
+    vesselShort:"Y-9 electronic intelligence aircraft (Saturday)",
+    location:"In Southwest Japan",
+    text:`On Saturday, a Y-9 flew in from China and then changed course over the East China Sea while east of Okinawa to head northeast. The aircraft later changed course while south of the Danjo Islands to head towards China. On all four occasions, fighter aircraft from the Japan Air Self-Defense Force were scrambled in response.` },
+
+  { force:"PLA / China", color:"#dc2626", lat:27.40, lng:125.60,
+    path:[[31.60,124.30],[31.60,126.90],[30.70,127.60],[27.40,125.60],[30.75,127.70],[31.66,127.00],[31.66,124.20]],
+    vesselShort:"Y-9 electronic intelligence aircraft (Sunday)",
+    location:"In Southwest Japan",
+    text:`A Y-9 on Sunday flew in from China, traveling east until it was south of the Danjo Islands, and then flew southwest. While east of Okinawa, the Y-9 turned around to fly back the same way until it was south of the Danjo Islands and then flew back towards China. On all four occasions, fighter aircraft from the Japan Air Self-Defense Force were scrambled in response.` },
+
+  { force:"PLA / China", color:"#dc2626", lat:29.95, lng:126.85,
+    path:[[31.68,124.50],[31.56,126.75],[29.95,126.85],[27.50,125.65],[30.02,126.97],[31.62,126.88],[30.60,123.90]],
+    vesselShort:"Y-9 electronic intelligence aircraft (Monday)",
+    location:"In Southwest Japan",
+    text:`On Monday, a Y-9 flew in from China east over the East China Sea until it was south of the Danjo Islands. Then the Y-9 changed course to fly southwest until it was east of Okinawa and flew back the same way until it was south of the Danjo Islands and returned to China. On all four occasions, fighter aircraft from the Japan Air Self-Defense Force were scrambled in response.` },
+
+  { force:"PLA / China", color:"#dc2626", lat:31.52, lng:125.70,
+    path:[[30.00,124.40],[30.00,127.15],[31.52,127.10],[31.52,124.30]],
+    vesselShort:"Y-9 electronic intelligence aircraft (Wednesday)",
+    location:"In Southwest Japan",
+    text:`On Wednesday, a Y-9 flew over the East China Sea from China and conducted a back-and-forth flight pattern southwest of the Danjo Islands before flying back to China. On all four occasions, fighter aircraft from the Japan Air Self-Defense Force were scrambled in response.` },
+
+  { force:"Russian Navy", color:"#8b5cf6", lat:38.6306, lng:141.1193,
+    path:[[47.80,145.20],[43.20,144.20],[39.60,142.80],[38.6306,142.40]],
+    vesselShort:"IL-20 ELINT aircraft",
+    location:"Near Miyagi Prefecture",
+    text:`On Saturday, a Russian IL-20 ELINT aircraft flew in from the Russian continent, passed over the Sea of Okhotsk to enter the Pacific Ocean and then headed south until it was east of the Miyagi Prefecture.` },
+
+  { force:"Russian Navy", color:"#8b5cf6", lat:45.8102, lng:141.9262,
+    path:[[45.84,142.40],[45.8102,141.9262],[45.70,141.10],[45.62,140.40]],
+    vesselShort:"RFS Rezkiy (343)",
+    location:"In La P\u00e9rouse Strait",
+    text:`Russian Navy corvette RFS Rezkiy (343) carried out a westward transit of La P\u00e9rouse Strait from Sunday to Monday.` },
+
+  { force:"Allied / partner", color:"#16a34a", lat:-33.8623, lng:151.2077,
+    vesselShort:"HMAS Choules (L100)",
+    location:"In Sydney, Australia",
+    text:`Royal Australian Navy amphibious dock landing ship HMAS Choules (L100) returned Friday to RAN Fleet Base East following an 87-day Indo-Pacific deployment supporting Exercise Pacific Partnership 2026.` }
+];
+
+/* ---------- Map ---------- */
+const map = L.map('map', { zoomControl:true, scrollWheelZoom:true, worldCopyJump:false,
+                           center:[15.0, 125.0], zoom:3 });
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom:12, attribution:'&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+/* An incident may carry one track (path), several (paths), and extra
+   secondary sites (also) that share its caption. */
+incidents.forEach(inc => {
+  inc._tracks = inc.paths ? inc.paths : (inc.path ? [inc.path] : []);
+  inc._also = inc.also || [];
+});
+
+const pts = [];
+incidents.forEach(inc => {
+  if (inc.lng <= 180) pts.push([inc.lat, inc.lng]);
+  inc._also.forEach(p => { if (p[1] <= 180) pts.push(p); });
+  inc._tracks.forEach(t => t.forEach(p => { if (p[1] <= 180) pts.push(p); }));
+});
+const BOUNDS = L.latLngBounds(pts);
+
+/* Fit only once the container actually has a size. A lazy-loaded, hidden or
+   not-yet-laid-out iframe reports 0x0, and Leaflet then falls back to maxZoom,
+   which opens the map fully zoomed in. Retry until a real size shows up. */
+let fitted = false;
+function fitAll(){
+  const s = map.getSize();
+  if (s.x < 60 || s.y < 60) return;
+  map.invalidateSize(false);
+  map.fitBounds(BOUNDS, { padding:[34,34] });
+  fitted = true;
+}
+fitAll();
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(() => {
+    if (!fitted) fitAll(); else map.invalidateSize(false);
+  }).observe(document.getElementById('mapshell'));
+}
+window.addEventListener('load',   () => { if (!fitted) fitAll(); });
+window.addEventListener('resize', () => { if (!fitted) fitAll(); else map.invalidateSize(false); });
+
+incidents.forEach(inc => {
+  inc._lines = inc._tracks.map(t => L.polyline(t, {
+    color: inc.color, weight: 2, dashArray: '6,7', opacity: 0.12, interactive: false
+  }).addTo(map));
+});
+
+incidents.forEach((inc, i) => {
+  inc._sub = inc._also.map(p => L.circleMarker(p, {
+    radius: 5, color: '#ffffff', weight: 1.5, fillColor: inc.color, fillOpacity: 0.18, opacity: 0.28
+  }).addTo(map));
+  inc._m = L.circleMarker([inc.lat, inc.lng], {
+    radius: 7, color: '#ffffff', weight: 2, fillColor: inc.color, fillOpacity: 0.18, opacity: 0.28
+  }).addTo(map);
+  inc._m.on('click', () => setIndex(i));
+});
+
+/* ---------- Slider ---------- */
+const slider  = document.getElementById('slider');
+const counter = document.getElementById('counter');
+const tick    = document.getElementById('tick');
+const cardEl  = document.getElementById('card');
+slider.max = incidents.length - 1;
+
+let idx = 0, timer = null;
+
+function setIndex(n) {
+  idx = Math.max(0, Math.min(incidents.length - 1, n));
+  slider.value = idx;
+
+  incidents.forEach((inc, i) => {
+    const shown   = i <= idx;
+    const current = i === idx;
+    inc._m.setStyle({
+      fillOpacity: shown ? 0.95 : 0.18,
+      opacity:     shown ? 1 : 0.28,
+      weight:      current ? 3 : 2
+    });
+    inc._m.setRadius(current ? 11 : (shown ? 7.5 : 6));
+    if (current) inc._m.bringToFront();
+    inc._sub.forEach(s => s.setStyle({
+      fillOpacity: shown ? 0.85 : 0.18, opacity: shown ? 0.95 : 0.28
+    }));
+    inc._lines.forEach(l => l.setStyle({ opacity: shown ? 0.75 : 0.12 }));
+  });
+
+  const inc = incidents[idx];
+  const f = document.getElementById('c-force');
+  f.textContent = inc.force;
+  f.style.background = inc.color;
+  document.getElementById('c-title').textContent = inc.vesselShort;
+  document.getElementById('c-loc').textContent   = inc.location + ' \u00b7 ' + WEEK;
+  document.getElementById('c-text').textContent  = inc.text;
+  cardEl.scrollTop = 0;
+
+  counter.textContent = (idx + 1) + ' of ' + incidents.length;
+  tick.textContent = inc.location;
+}
+
+document.getElementById('prev').onclick = () => { stop(); setIndex(idx - 1); };
+document.getElementById('next').onclick = () => { stop(); setIndex(idx + 1); };
+slider.oninput = () => { stop(); setIndex(parseInt(slider.value, 10)); };
+
+const playBtn = document.getElementById('play');
+function stop() { if (timer) { clearInterval(timer); timer = null; playBtn.innerHTML = '&#9654;'; } }
+playBtn.onclick = () => {
+  if (timer) { stop(); return; }
+  if (idx >= incidents.length - 1) setIndex(0);
+  playBtn.innerHTML = '&#10074;&#10074;';
+  timer = setInterval(() => {
+    if (idx >= incidents.length - 1) { stop(); return; }
+    setIndex(idx + 1);
+  }, 3000);
+};
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') { stop(); setIndex(idx + 1); }
+  if (e.key === 'ArrowLeft')  { stop(); setIndex(idx - 1); }
+});
+
+setIndex(0);
+</script>
+</body>
+</html>
