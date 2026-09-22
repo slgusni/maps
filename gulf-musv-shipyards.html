@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gulf Coast MUSV Shipyards</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; font-family: Arial, Helvetica, sans-serif; }
+  #map-wrapper {
+    width: 100%;
+    max-width: 900px;
+    aspect-ratio: 5 / 4;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid #444;
+  }
+  #map { width: 100%; height: 100%; }
+
+  /* Marker: dot + name label, focusable for keyboard users */
+  .yard-marker { display: flex; align-items: center; gap: 7px; cursor: pointer; white-space: nowrap; }
+  .yard-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: #ff4444; border: 2px solid #fff;
+    box-shadow: 0 0 0 0 rgba(255,68,68,0.6);
+    flex: none;
+  }
+  .yard-name {
+    color: #fff; font-weight: bold; font-size: 12px;
+    text-shadow: 1px 1px 3px #000, -1px -1px 3px #000, 0 0 4px #000;
+  }
+  .leaflet-marker-icon:focus { outline: none; }
+  .leaflet-marker-icon:focus .yard-dot,
+  .yard-marker:hover .yard-dot { box-shadow: 0 0 0 4px rgba(255,214,0,0.85); }
+
+  /* Fact box */
+  .leaflet-popup-content-wrapper { border-radius: 4px; padding: 0; overflow: hidden; background: #fff; }
+  .leaflet-popup-content { margin: 0; width: 280px !important; max-width: 72vw; }
+  .fact-img {
+    display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; background: #d9dde3;
+  }
+  .fact-img-empty {
+    width: 100%; aspect-ratio: 3 / 2; background: #d9dde3;
+    display: flex; align-items: center; justify-content: center;
+    color: #6b7280; font-size: 12px;
+  }
+  .fact-credit { font-size: 10px; color: #6b7280; text-align: right; padding: 4px 12px 0; }
+  .fact-body { padding: 10px 14px 14px; }
+  .fact-name { font-size: 17px; font-weight: bold; color: #0f2a4a; margin-bottom: 6px; line-height: 1.2; }
+  .fact-text { font-size: 13px; line-height: 1.45; color: #222; margin: 0 0 10px; }
+  .fact-platform {
+    font-size: 13px; line-height: 1.4; color: #222;
+    border-left: 3px solid #ff4444; padding-left: 8px;
+  }
+  .fact-platform b { color: #0f2a4a; }
+  .leaflet-container a.leaflet-popup-close-button { color: #fff; text-shadow: 0 0 3px #000; font-size: 22px; width: 28px; height: 28px; }
+
+  /* Title / logo controls (match house style) */
+  .map-title {
+    background: rgba(0,0,0,0.65); color: #cde; font: bold 13px Arial, sans-serif;
+    padding: 6px 12px; border-radius: 0 0 6px 0; pointer-events: none;
+  }
+  .map-logo { background: rgba(0,0,0,0.65); padding: 6px 8px; border-radius: 6px 0 0 0; pointer-events: none; }
+  .map-logo img { display: block; height: 26px; width: auto; }
+  .map-hint {
+    background: rgba(0,0,0,0.65); color: #ddd; font: 11px Arial, sans-serif;
+    padding: 5px 10px; border-radius: 6px; pointer-events: none;
+  }
+  .route-shield {
+    display: inline-block; background: #fff; color: #111; border: 2px solid #111;
+    font: bold 11px Arial, sans-serif; padding: 2px 6px; border-radius: 3px; white-space: nowrap;
+  }
+
+  /* Narrow screens: fact box becomes a full-width, single-column sheet */
+  #sheet {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 1000;
+    max-height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    background: #fff; border-top: 3px solid #ff4444;
+    box-shadow: 0 -4px 14px rgba(0,0,0,0.45);
+  }
+  #sheet[hidden] { display: none; }
+  #sheet .fact-body { padding: 10px 16px 16px; }
+  #sheet-close {
+    position: absolute; top: 6px; right: 8px; z-index: 1;
+    width: 32px; height: 32px; border: 0; border-radius: 50%;
+    background: rgba(0,0,0,0.6); color: #fff; font-size: 22px; line-height: 32px; cursor: pointer;
+  }
+  #sheet-close:focus-visible { outline: 3px solid #FFD600; outline-offset: 2px; }
+
+  /* Title and hint would collide on narrow embeds; drop the hint */
+  @media (max-width: 560px) { .map-hint { display: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .leaflet-fade-anim .leaflet-popup { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div id="map-wrapper">
+  <div id="map"></div>
+  <div id="sheet" role="dialog" aria-modal="false" aria-label="Shipyard details" hidden>
+    <button id="sheet-close" type="button" aria-label="Close">&times;</button>
+    <div id="sheet-content"></div>
+  </div>
+</div>
+<script>
+/* ============================================================
+   EDIT HERE
+   ------------------------------------------------------------
+   TITLE / LOGO_URL: leave "" to hide.
+   image:  full URL to the photo (WordPress media library, repo, DVIDS...)
+   credit: photo credit line. Leave "" to hide.
+   lat/lng: marker position.
+   ============================================================ */
+const TITLE = "Autonomous Ship Contenders";
+const LOGO_URL = "https://news.usni.org/wp-content/uploads/2016/02/usni_logo.png";
+
+const YARDS = [
+  {
+    name: "Conrad Shipyards",
+    lat: 29.70608, lng: -91.21657,
+    text: "The Morgan City, La., shipbuilder has five shipyards split between Texas and Louisiana and specializes in barges and oil and gas support.",
+    platform: "Liberty with Blue Water Autonomy",
+    image: "https://news.usni.org/wp-content/uploads/2026/09/AM1A8380-scaled.jpg",
+    credit: "USNI News"
+  },
+  {
+    name: "Saronic",
+    lat: 29.81892, lng: -91.54237,
+    text: "The Texas-based autonomous boat builder bought the former Gulf Craft shipyard last year and is constructing a 300,000-square-foot manufacturing facility to build its Marauder MUSV.",
+    platform: "Marauder",
+    image: "https://news.usni.org/wp-content/uploads/2026/09/AM1A8353-scaled.jpg",
+    credit: "USNI News"
+  },
+  {
+    name: "Breaux Brothers",
+    lat: 30.06651, lng: -91.76921,
+    text: "The family-owned shipyard specializes in building aluminum crew boats for the oil and gas industry.",
+    platform: "Romulus with HII",
+    image: "https://news.usni.org/wp-content/uploads/2026/09/AM1A8099-scaled.jpg",
+    credit: "USNI News"
+  }
+];
+
+// U.S. 90, Lafayette to New Orleans area (Natural Earth 10m roads, generalized)
+const US90 = [[30.2606,-92.0152],[30.2276,-92.0083],[30.1981,-91.9961],[30.1721,-91.9753],[30.1495,-91.9475],[30.0713,-91.9405],[30.0366,-91.9214],[30.0036,-91.8867],[29.9741,-91.8468],[29.9272,-91.746],[29.83,-91.5759],[29.8178,-91.5672],[29.8022,-91.5411],[29.7657,-91.5047],[29.7518,-91.4786],[29.7414,-91.423],[29.731,-91.4039],[29.7067,-91.3831],[29.6997,-91.3675],[29.6928,-91.3136],[29.6806,-91.2928],[29.698,-91.2025],[29.6754,-91.1278],[29.6702,-91.0827],[29.6737,-91.0566],[29.6928,-91.0063],[29.6928,-90.9872],[29.6823,-90.9767],[29.6389,-90.9646],[29.6216,-90.9507],[29.6059,-90.9003],[29.5903,-90.8708],[29.592,-90.8309],[29.5625,-90.7961],[29.5608,-90.784],[29.5747,-90.7562],[29.5799,-90.7232],[29.6094,-90.7162],[29.6407,-90.6937],[29.691,-90.6398],[29.6928,-90.5877],[29.7206,-90.5634],[29.7344,-90.5565],[29.7553,-90.5547],[29.8109,-90.4905],[29.8247,-90.4627],[29.8404,-90.4488],[29.8682,-90.4419],[29.8768,-90.4349],[29.8873,-90.4106],[29.89,-90.3997]];
+const US90_LABEL_AT = [29.7414, -91.423];   // where the route shield sits
+/* ============================================================ */
+
+const map = L.map('map', {
+  zoomControl: true,
+  scrollWheelZoom: false,   // don't hijack page scroll inside the WordPress iframe
+  attributionControl: true
+});
+
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  maxZoom: 18
+}).addTo(map);
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function factBox(y) {
+  const img = y.image
+    ? `<img class="fact-img" src="${esc(y.image)}" alt="${esc(y.name)}" loading="lazy">`
+    : `<div class="fact-img-empty">Image</div>`;
+  const credit = y.credit ? `<div class="fact-credit">${esc(y.credit)}</div>` : '';
+  const platform = y.platform ? `<div class="fact-platform"><b>MUSV platform:</b> ${esc(y.platform)}</div>` : '';
+  return `${img}${credit}
+    <div class="fact-body">
+      <div class="fact-name">${esc(y.name)}</div>
+      ${y.text ? `<p class="fact-text">${esc(y.text)}</p>` : ''}
+      ${platform}
+    </div>`;
+}
+
+// U.S. 90 — casing + line, drawn under the markers
+L.polyline(US90, { color: '#1a1a2e', weight: 7, opacity: 0.55, interactive: false }).addTo(map);
+L.polyline(US90, { color: '#FFD600', weight: 3.5, opacity: 0.95, interactive: false }).addTo(map);
+L.marker(US90_LABEL_AT, {
+  icon: L.divIcon({ className: '', html: '<div class="route-shield">US 90</div>', iconSize: null, iconAnchor: [22, 10] }),
+  interactive: false, keyboard: false
+}).addTo(map);
+
+// Fact box: popup on wide screens, single-column bottom sheet on narrow ones
+const NARROW = window.matchMedia('(max-width: 560px)');
+const sheet = document.getElementById('sheet');
+const sheetContent = document.getElementById('sheet-content');
+const popup = L.popup({ maxWidth: 280, autoPanPadding: [20, 20], closeButton: true });
+let lastMarker = null;
+
+// Shrink the photo (cropping, not squashing) so the whole fact box fits in the map.
+// Keeps full 3:2 when there's room; never goes below MIN_IMG px.
+const MIN_IMG = 70;
+function fitImage(box, available) {
+  const img = box.querySelector('.fact-img, .fact-img-empty');
+  if (!img) return;
+  img.style.height = '';
+  img.style.aspectRatio = '';
+  const full = img.getBoundingClientRect().height;          // natural 3:2 height
+  const rest = box.scrollHeight - full;                      // name, text, credit, platform
+  const h = Math.max(MIN_IMG, Math.min(full, available - rest));
+  img.style.aspectRatio = 'auto';
+  img.style.height = h + 'px';
+}
+function refit() {
+  const mapH = map.getSize().y;
+  if (!sheet.hidden) fitImage(sheetContent, mapH);
+  if (map.hasLayer(popup)) {
+    // room for popup chrome, tip, and pan padding
+    fitImage(popup.getElement().querySelector('.leaflet-popup-content'), mapH - 70);
+    popup.update();
+  }
+}
+
+function openFact(y, marker) {
+  lastMarker = marker;
+  if (NARROW.matches) {
+    map.closePopup();
+    sheetContent.innerHTML = factBox(y);
+    sheet.hidden = false;
+    sheet.scrollTop = 0;
+    refit();
+    document.getElementById('sheet-close').focus({ preventScroll: true });
+  } else {
+    closeSheet(false);
+    popup.setLatLng(marker.getLatLng()).setContent(factBox(y)).openOn(map);
+    refit();
+  }
+}
+function closeSheet(returnFocus = true) {
+  if (sheet.hidden) return;
+  sheet.hidden = true;
+  if (returnFocus && lastMarker && lastMarker.getElement()) lastMarker.getElement().focus();
+}
+document.getElementById('sheet-close').addEventListener('click', () => closeSheet());
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+map.on('click', () => closeSheet(false));
+// Switching layouts (rotate phone, resize) closes whatever is open
+NARROW.addEventListener('change', () => { map.closePopup(); closeSheet(false); });
+
+map.on('resize', refit);
+document.fonts && document.fonts.ready.then(refit);
+
+const bounds = [];
+YARDS.forEach(y => {
+  const icon = L.divIcon({
+    className: '',
+    html: `<div class="yard-marker"><span class="yard-dot"></span><span class="yard-name">${esc(y.name)}</span></div>`,
+    iconSize: null,
+    iconAnchor: [7, 7],
+    popupAnchor: [0, -6]
+  });
+  const m = L.marker([y.lat, y.lng], { icon, keyboard: true, title: y.name, alt: y.name }).addTo(map);
+  m.on('click', () => openFact(y, m));
+  bounds.push([y.lat, y.lng]);
+});
+
+map.fitBounds(bounds, { padding: [90, 90], maxZoom: 9 });
+
+// Title (hidden if blank)
+if (TITLE) {
+  const t = L.control({ position: 'topleft' });
+  t.onAdd = () => { const d = L.DomUtil.create('div', 'map-title'); d.textContent = TITLE; return d; };
+  t.addTo(map);
+  // re-add zoom so the buttons sit below the title, not above it
+  map.removeControl(map.zoomControl);
+  map.zoomControl.addTo(map);
+}
+
+// Logo (hidden if blank)
+if (LOGO_URL) {
+  const l = L.control({ position: 'bottomleft' });
+  l.onAdd = () => { const d = L.DomUtil.create('div', 'map-logo'); d.innerHTML = `<img src="${esc(LOGO_URL)}" alt="USNI News">`; return d; };
+  l.addTo(map);
+}
+
+// Interaction hint
+const h = L.control({ position: 'topright' });
+h.onAdd = () => { const d = L.DomUtil.create('div', 'map-hint'); d.textContent = 'Select a shipyard for details'; return d; };
+h.addTo(map);
+</script>
+</body>
+</html>
