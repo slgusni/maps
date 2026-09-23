@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Photo gallery</title>
+<!-- Fill in each src, alt, and caption below. Photos display at 3:2;
+     change --hg-ratio if your photos are a different shape. -->
+<style>
+  :root {
+    --hg-ratio: 3 / 2;
+    --hg-text: #1a1a1a;
+    --hg-muted: #555;
+    --hg-font: Georgia, "Times New Roman", serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: transparent; color: var(--hg-text); font-family: var(--hg-font); }
+
+  .hg { position: relative; }
+  .hg-track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin: 0; padding: 0;
+  }
+  .hg-track::-webkit-scrollbar { display: none; }
+  .hg-track:focus-visible { outline: 2px solid var(--hg-text); outline-offset: -2px; }
+
+  figure.hg-slide {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    margin: 0;
+  }
+  .hg-img-wrap { position: relative; }
+  .hg-slide img {
+    display: block; width: 100%; height: auto;
+    aspect-ratio: var(--hg-ratio);
+    object-fit: cover;
+    background: #ddd;
+  }
+  figure.hg-slide { position: relative; }
+  .hg-slide figcaption {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 36px 16px 12px;
+    font-size: 13px; line-height: 1.4; color: #fff;
+    background: linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.45) 60%, rgba(0,0,0,0));
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+  .hg-slide figcaption:empty { display: none; }
+
+  /* Arrows sit over the photo, vertically centered on the image (not the caption) */
+  .hg-btn {
+    position: absolute;
+    top: 0; height: 0;
+    width: 44px;
+    border: 0; padding: 0; background: none; cursor: pointer;
+  }
+  .hg-btn span {
+    position: absolute; top: 0; transform: translateY(-50%);
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,0.85); color: #000;
+    font: 28px/44px Arial, sans-serif; text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  .hg-prev { left: 10px; }
+  .hg-next { right: 10px; }
+  .hg-btn:disabled { display: none; }
+  .hg-btn:focus-visible span { outline: 3px solid #fff; outline-offset: 2px; }
+
+  @media (max-width: 600px) {
+    .hg-btn span { width: 36px; height: 36px; font-size: 24px; line-height: 36px; }
+    .hg-prev { left: 6px; } .hg-next { right: 6px; }
+    .hg-slide figcaption { font-size: 11px; padding: 24px 10px 8px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .hg-track { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="hg">
+  <div class="hg-track" tabindex="0" role="region" aria-label="Photo gallery">
+
+    <figure class="hg-slide">
+      <div class="hg-img-wrap"><img src="https://news.usni.org/wp-content/uploads/2026/09/AM1A8160-scaled.jpg" alt=""></div>
+      <figcaption>The hull of an aluminum Breaux Brothers boat on Aug. 3, 2026. USNI News photo</figcaption>
+    </figure>
+
+    <figure class="hg-slide">
+      <div class="hg-img-wrap"><img src="https://news.usni.org/wp-content/uploads/2026/09/AM1A8290-scaled.jpg" alt="" loading="lazy"></div>
+      <figcaption>Workers at the Breaux Brothers boatyard on Aug. 3, 2026. USNI News photo</figcaption>
+    </figure>
+
+    <figure class="hg-slide">
+      <div class="hg-img-wrap"><img src="https://news.usni.org/wp-content/uploads/2026/09/AM1A8151-scaled.jpg" alt="" loading="lazy"></div>
+      <figcaption>The deckhouse of the first HII Romulus MUSV at Breaux Brothers boatyard on Aug. 3, 2026. USNI News photo</figcaption>
+    </figure>
+
+    <figure class="hg-slide">
+      <div class="hg-img-wrap"><img src="https://news.usni.org/wp-content/uploads/2026/09/AM1A8208-scaled.jpg" alt="" loading="lazy"></div>
+      <figcaption>The bow of a Romulus MUSV at Breaux Brothers boatyard on Aug. 3, 2026. USNI News photo</figcaption>
+    </figure>
+
+    <figure class="hg-slide">
+      <div class="hg-img-wrap"><img src="https://news.usni.org/wp-content/uploads/2026/09/AM1A8183-scaled.jpg" alt="" loading="lazy"></div>
+      <figcaption>A worker at Breaux Brothers boatyard on Aug. 3, 2026. USNI News photo</figcaption>
+    </figure>
+
+  </div>
+  <button type="button" class="hg-btn hg-prev" aria-label="Previous photo"><span>&#8249;</span></button>
+  <button type="button" class="hg-btn hg-next" aria-label="Next photo"><span>&#8250;</span></button>
+</div>
+
+<script>
+(function () {
+  var track = document.querySelector('.hg-track');
+  var slides = track.querySelectorAll('.hg-slide');
+  var prev = document.querySelector('.hg-prev');
+  var next = document.querySelector('.hg-next');
+
+  function idx() { return Math.round(track.scrollLeft / track.clientWidth); }
+  function go(i) {
+    i = Math.max(0, Math.min(slides.length - 1, i));
+    track.scrollTo({ left: i * track.clientWidth });
+  }
+  function placeArrows() {
+    // center arrows on the image height
+    var img = slides[0].querySelector('img');
+    var y = img.getBoundingClientRect().height / 2;
+    prev.style.top = next.style.top = y + 'px';
+  }
+  function update() {
+    var i = idx();
+    prev.disabled = i <= 0;
+    next.disabled = i >= slides.length - 1;
+  }
+  function reportHeight() {
+    // lets the WordPress embed size the iframe to fit exactly
+    var h = document.documentElement.scrollHeight;
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'usni-gallery-height', src: location.href, height: h }, '*');
+    }
+  }
+
+  prev.addEventListener('click', function () { go(idx() - 1); });
+  next.addEventListener('click', function () { go(idx() + 1); });
+  track.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') { e.preventDefault(); go(idx() + 1); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); go(idx() - 1); }
+  });
+  var t;
+  track.addEventListener('scroll', function () { clearTimeout(t); t = setTimeout(update, 50); });
+  window.addEventListener('resize', function () { placeArrows(); update(); reportHeight(); });
+  window.addEventListener('load', function () { placeArrows(); reportHeight(); });
+  if ('ResizeObserver' in window) new ResizeObserver(reportHeight).observe(document.body);
+
+  placeArrows(); update(); reportHeight();
+})();
+</script>
+</body>
+</html>
