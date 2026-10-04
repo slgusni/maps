@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shipyards</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; font-family: Arial, Helvetica, sans-serif; }
+  #map-wrapper {
+    width: 100%;
+    max-width: 900px;
+    aspect-ratio: 5 / 4;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid #444;
+  }
+  #map { width: 100%; height: 100%; }
+
+  /* Marker: dot + name label, focusable for keyboard users */
+  .yard-marker { display: flex; align-items: center; gap: 7px; cursor: pointer; white-space: nowrap; }
+  .yard-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: #ff4444; border: 2px solid #fff;
+    box-shadow: 0 0 0 0 rgba(255,68,68,0.6);
+    flex: none;
+  }
+  .yard-name {
+    color: #fff; font-weight: bold; font-size: 12px;
+    text-shadow: 1px 1px 3px #000, -1px -1px 3px #000, 0 0 4px #000;
+  }
+  /* Names hide when zoomed out (too crowded), show on hover/focus or at LABEL_ZOOM+ */
+  #map.labels-off .yard-name { display: none; }
+  #map.labels-off .leaflet-marker-icon:hover .yard-name,
+  #map.labels-off .leaflet-marker-icon:focus .yard-name {
+    display: inline; position: relative; z-index: 2;
+    background: rgba(0,0,0,0.75); padding: 2px 6px; border-radius: 3px; text-shadow: none;
+  }
+  .leaflet-marker-icon:hover, .leaflet-marker-icon:focus { z-index: 10000 !important; }
+  .leaflet-marker-icon:focus { outline: none; }
+  .leaflet-marker-icon:focus .yard-dot,
+  .yard-marker:hover .yard-dot { box-shadow: 0 0 0 4px rgba(255,214,0,0.85); }
+
+  /* Fact box */
+  .leaflet-popup-content-wrapper { border-radius: 4px; padding: 0; overflow: hidden; background: #fff; }
+  .leaflet-popup-content { margin: 0; width: 280px !important; max-width: 72vw; }
+  .fact-img {
+    display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; background: #d9dde3;
+  }
+  .fact-img-empty {
+    width: 100%; aspect-ratio: 3 / 2; background: #d9dde3;
+    display: flex; align-items: center; justify-content: center;
+    color: #6b7280; font-size: 12px;
+  }
+  /* Gallery */
+  .gallery { position: relative; background: #d9dde3; }
+  .gallery-track {
+    display: flex; overflow-x: auto; overflow-y: hidden;
+    scroll-snap-type: x mandatory; scroll-behavior: smooth;
+    aspect-ratio: 3 / 2; width: 100%;
+    scrollbar-width: none; overscroll-behavior-x: contain;
+  }
+  .gallery-track::-webkit-scrollbar { display: none; }
+  .gallery-track:focus-visible { outline: 3px solid #FFD600; outline-offset: -3px; }
+  .gallery-track .fact-img {
+    flex: 0 0 100%; width: 100%; height: 100%; aspect-ratio: auto;
+    scroll-snap-align: start; scroll-snap-stop: always;
+  }
+  .gallery-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 32px; height: 32px; border: 0; border-radius: 50%;
+    background: rgba(0,0,0,0.6); color: #fff; font-size: 20px; line-height: 32px;
+    cursor: pointer; padding: 0;
+  }
+  .gallery-btn[disabled] { opacity: 0; pointer-events: none; }
+  .gallery-btn:focus-visible { outline: 3px solid #FFD600; outline-offset: 2px; }
+  .gallery-prev { left: 6px; }
+  .gallery-next { right: 6px; }
+  .gallery-count {
+    position: absolute; left: 8px; bottom: 6px;
+    background: rgba(0,0,0,0.6); color: #fff; font-size: 11px;
+    padding: 2px 7px; border-radius: 10px; pointer-events: none;
+  }
+  .map-legend {
+    background: rgba(0,0,0,0.65); color: #fff; font: bold 11px Arial, sans-serif;
+    padding: 6px 10px; border-radius: 6px; pointer-events: none;
+  }
+  .legend-row { display: flex; align-items: center; gap: 7px; }
+  .legend-row + .legend-row { margin-top: 4px; }
+  .map-legend .yard-dot { width: 12px; height: 12px; }
+  /* Text-only boxes: dark close button, keep the name clear of it */
+  .leaflet-popup:not(:has(.gallery)) a.leaflet-popup-close-button { color: #555; text-shadow: none; }
+  .fact-body:first-child, .fact-credit[hidden] + .fact-body { padding-top: 14px; }
+  .fact-name { padding-right: 22px; }
+  #sheet:not(:has(.gallery)) #sheet-close { background: transparent; color: #555; }
+  @media (prefers-reduced-motion: reduce) { .gallery-track { scroll-behavior: auto; } }
+  .fact-credit { font-size: 10px; color: #6b7280; text-align: right; padding: 4px 12px 0; }
+  .fact-body { padding: 10px 14px 14px; }
+  .fact-name { font-size: 17px; font-weight: bold; color: #0f2a4a; margin-bottom: 6px; line-height: 1.2; }
+  .fact-text { font-size: 13px; line-height: 1.45; color: #222; margin: 0 0 10px; }
+  .fact-platform {
+    font-size: 13px; line-height: 1.4; color: #222;
+    border-left: 3px solid #b9162a; padding-left: 8px;
+  }
+  .fact-platform b { color: #0f2a4a; }
+  .leaflet-container a.leaflet-popup-close-button { color: #fff; text-shadow: 0 0 3px #000; font-size: 22px; width: 28px; height: 28px; }
+
+  /* Title / logo controls (match house style) */
+  .map-title {
+    background: rgba(0,0,0,0.65); color: #cde; font: bold 13px Arial, sans-serif;
+    padding: 6px 12px; border-radius: 0 0 6px 0; pointer-events: none;
+  }
+  .map-logo { background: rgba(0,0,0,0.65); padding: 6px 8px; border-radius: 6px 0 0 0; pointer-events: none; }
+  .map-logo img { display: block; height: 26px; width: auto; }
+  .map-hint {
+    background: rgba(0,0,0,0.65); color: #ddd; font: 11px Arial, sans-serif;
+    padding: 5px 10px; border-radius: 6px; pointer-events: none;
+  }
+
+  /* Narrow screens: fact box becomes a full-width, single-column sheet */
+  #sheet {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 1000;
+    max-height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    background: #fff; border-top: 3px solid #b9162a;
+    box-shadow: 0 -4px 14px rgba(0,0,0,0.45);
+  }
+  #sheet[hidden] { display: none; }
+  #sheet .fact-body { padding: 10px 16px 16px; }
+  #sheet-close {
+    position: absolute; top: 6px; right: 8px; z-index: 1;
+    width: 32px; height: 32px; border: 0; border-radius: 50%;
+    background: rgba(0,0,0,0.6); color: #fff; font-size: 22px; line-height: 32px; cursor: pointer;
+  }
+  #sheet-close:focus-visible { outline: 3px solid #FFD600; outline-offset: 2px; }
+
+  /* Title and hint would collide on narrow embeds; drop the hint */
+  @media (max-width: 560px) { .map-hint { display: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .leaflet-fade-anim .leaflet-popup { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div id="map-wrapper">
+  <div id="map"></div>
+  <div id="sheet" role="dialog" aria-modal="false" aria-label="Shipyard details" hidden>
+    <button id="sheet-close" type="button" aria-label="Close">&times;</button>
+    <div id="sheet-content"></div>
+  </div>
+</div>
+<script>
+/* ============================================================
+   EDIT HERE
+   ------------------------------------------------------------
+   TITLE / LOGO_URL: leave "" to hide.
+   images: photo URLs for the gallery, in order. Add as many as you like,
+           one per line, each in quotes, separated by commas.
+           A photo with its own credit: { src: "URL", credit: "Name/Outlet" }
+   credit: default credit for every photo in that yard. Leave "" to hide.
+   text:   fact box copy. detail: optional second line, shown after DETAIL_LABEL.
+   type:   "prime" or "supplier" — sets marker color.
+   Anything left "" is hidden.
+   lat/lng: marker position.
+   ============================================================ */
+const TITLE = "";
+const DETAIL_LABEL = "Employees";
+
+// Marker colors by yard type, and the legend labels
+const TYPES = {
+  prime:    { color: "#000000", label: "Prime yards" },
+  supplier: { color: "#1e90ff", label: "Supplier yards" }
+};
+const LOGO_URL = "https://news.usni.org/wp-content/uploads/2016/02/usni_logo.png";
+
+const YARDS = [
+  {
+    name: "Fincantieri Marinette Marine",
+    type: "prime",
+    lat: 45.0992977, lng: -87.6199699,
+    text: "The shipyard teamed with Lockheed Martin for the Freedom-class Littoral Combat Ship and then won the follow FFG(X) competition. Following the cancellation of the Constellation-class frigate, the yard is completing four ships for the Royal Saudi Navy and will also build the Landing Ship Medium.",
+    detail: "2,175",   // employees + contract workers; WPR, late 2025 https://www.wpr.org/news/marinette-marine-layoffs-navy-canceled-ship-orders
+    images: [],
+    credit: ""
+  },
+  {
+    name: "Ingalls Shipbuilding",
+    type: "prime",
+    lat: 30.3626026, lng: -88.5723403,
+    text: "One of the largest shipyards in the country, Ingalls builds Arleigh Burke guided-missile destroyers, San Antonio-class amphibious warships and America-class big deck amphibs.\nThe yard has been tapping other shipyards to build modules for destroyers and amphibs.",
+    detail: "11,000",   // WLOX, Feb 2026 https://www.wlox.com/2026/02/26/ingalls-shipbuilding-workers-vote-accept-contract-with-18-raise/
+    images: [],
+    credit: ""
+  },
+  {
+    name: "General Dynamics NASSCO",
+    type: "prime",
+    lat: 32.6914761, lng: -117.1339744,
+    text: "The San Diego yard is the Navy’s primary builder for auxiliaries and oilers.",
+    detail: "About 3,400",   // San Diego yard, excl. subcontractors; SDBJ, 2024 https://www.sdbj.com/defense/from-steel-to-seaworthy/
+    images: [],
+    credit: ""
+  },
+  {
+    name: "General Dynamics Electric Boat",
+    type: "prime",
+    lat: 41.3445989, lng: -72.0789837,
+    text: "Split between the original yard in Groton, Conn., and facilities in Quonset Point, R.I., the yard builds Virginia and Columbia class submarines in cooperation with HII Newport News. The yard has outsourced submarine modules to Austal USA, Rhoads.",
+    detail: "About 25,000",   // CT + RI combined; The Day, Feb 2026 https://portal.ct.gov/oma/in-the-news/2026-news/eb-to-hire-8000-this-year
+    images: [],
+    credit: ""
+  },
+  {
+    name: "Newport News Shipbuilding",
+    type: "prime",
+    lat: 36.9882341, lng: -76.4371943,
+    text: "The largest shipyard in the country Newport News builds both Virginia and Columbia class submarines as well as Gerald R. Ford-class aircraft carriers. They outsource work to their own facility in South Carolina.",
+    detail: "26,000",   // Virginia Business, Aug 2026 https://virginiabusiness.com/140-years-newport-news-shipbuilding/
+    images: [],
+    credit: ""
+  },
+  {
+    name: "Austal USA",
+    type: "prime",
+    lat: 30.6896681, lng: -88.0275467,
+    text: "Built to manufacture the Navy’s Independence-class Littoral Combat Ships, Austal now builds a variety of steel and aluminum ships as well as building modules for GD Electric Boat.",
+    detail: "More than 3,000",   // Mobile facilities; company site https://www.austalusa.com/
+    images: [],
+    credit: ""
+  },
+  {
+    name: "General Dynamics Bath Iron Works",
+    type: "prime",
+    lat: 43.909905, lng: -69.815154,
+    text: "The Maine yard builds Arleigh Burke guided-missile destroyers.",
+    detail: "About 6,800",   // AP, Mar 2026 https://www.boston.com/news/business/2026/03/23/hundreds-go-on-strike-at-major-navy-shipbuilder-in-maine-over-wages-and-benefits/
+    images: [],
+    credit: ""
+  },
+  {
+    name: "Gulf Copper Dry Dock & Rig Repair",
+    type: "supplier",
+    lat: 29.3167395, lng: -94.7974534,
+    text: "The Texas yard is building destroyer modules for Ingalls Shipbuilding.",
+    detail: "More than 350",   // Galveston + Port Arthur; Galveston Daily News, late 2025 https://www.galvnews.com/tncms/asset/editorial/7bc09aee-f364-5c56-ab9d-f32a0c571eee
+    images: [],
+    credit: ""
+  },
+  {
+    name: "Trident Maritime Systems",
+    type: "supplier",
+    lat: 29.955018, lng: -90.184485,
+    text: "The Northern Virginia company coordinates building destroyer modules from its office in Mississippi.",
+    detail: "",   // no site-level figure found
+    images: [],
+    credit: ""
+  },
+  {
+    name: "Thoma-Sea Marine Constructors",
+    type: "supplier",
+    lat: 29.5705953, lng: -90.6965465,
+    text: "The Louisiana shipyard is building a variety of government ships and destroyer modules.",
+    detail: "Close to 500",   // OLD figure, verify; Houma Times https://houmatimes.com/?p=14487
+    images: [],
+    credit: ""
+  },
+  {
+    name: "Eastern Shipbuilding Panama City Florida",
+    type: "supplier",
+    lat: 30.1426668, lng: -85.6294631,
+    text: "The shipyard that was the original builder of the Coast Guard Offshore Patrol Cutter is now building destroyer modules.",
+    detail: "About 1,300",   // employees + contract workers, 3 facilities; Schottel, undated https://www.schottel.de/en/media-events/stories/magazin-detail/from-0-to-350
+    images: [],
+    credit: ""
+  },
+  {
+    name: "Conrad Shipyard LLC",
+    type: "supplier",
+    lat: 29.6658977, lng: -91.1286083,
+    text: "The network of Louisiana shipyards has done outsourcing work for Austal USA’s Navy contracts.",
+    detail: "About 1,000",   // 5 yards; Conrad/NSRP, May 2025 https://www.nsrp.org/wp-content/uploads/2025/06/07-Conrad-Company-Presentation_2025.05.16-NSRP.pdf
+    images: [],
+    credit: ""
+  },
+  {
+    name: "Metal Shark Boats",
+    type: "supplier",
+    lat: 29.9426097, lng: -91.7417068,
+    text: "The boat builder is building destroyer modules.",
+    detail: "Nearly 400",   // 3 Louisiana sites; Professional Mariner, Feb 2024 https://professionalmariner.com/metal-shark-expanding-in-louisiana-with-third-facility/
+    images: [],
+    credit: ""
+  },
+  {
+    name: "BAE Systems Jacksonville, Fla.",
+    type: "supplier",
+    lat: 30.3910608, lng: -81.4593764,
+    text: "The shipyard is building modules for destroyers and submarines.",
+    detail: "",   // was 900 before June 2026 layoffs of <200; News4JAX https://news4jax.com/news/local/2026/06/11/bae-systems-lays-off-nearly-200-jacksonville-workers
+    images: [],
+    credit: ""
+  },
+  {
+    name: "Charleston Operations Newport News Shipbuilding",
+    type: "supplier",
+    lat: 33.0072164, lng: -79.9276886,
+    text: "The facility formerly belonging to W international was bought by HII and building components for Newport News Shipbuilding projects.",
+    detail: "About 500",   // at Jan 2025 acquisition; Post and Courier https://www.postandcourier.com/business/newport-news-shipbuilding-w-international-navy-submarines/article_33b61f0c-dcd6-11ef-a5de-27197940ac17.html
+    images: [],
+    credit: ""
+  },
+  {
+    name: "Rhoads Industries",
+    type: "supplier",
+    lat: 39.8892179, lng: -75.1862051,
+    text: "The company in the former Philadelphia Naval Shipyard is building modules for the Virginia and Columbia nuclear submarines.",
+    detail: "541",   // full-time positions retained, Jul 2025 https://www.plantservices.com/industry-news/news/55303780/rhoads-industries-invests-100m-to-build-ship-manufacturing-facility-in-pennsylvania
+    images: [],
+    credit: ""
+  }
+];
+
+/* ============================================================ */
+
+const map = L.map('map', {
+  zoomControl: true,
+  zoomSnap: 0.25,       // lets the opening view fit the yards more snugly
+  scrollWheelZoom: false,   // don't hijack page scroll inside the WordPress iframe
+  attributionControl: true
+});
+
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  maxZoom: 18
+}).addTo(map);
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function photos(y) {
+  return (y.images || []).map(p => typeof p === 'string'
+    ? { src: p, credit: y.credit || '' }
+    : { src: p.src, credit: p.credit != null ? p.credit : (y.credit || '') });
+}
+
+function factBox(y) {
+  const ph = photos(y);
+  let gallery;
+  if (!ph.length) {
+    gallery = '';   // no photos: box is text only
+  } else {
+    const slides = ph.map((p, i) =>
+      `<img class="fact-img" src="${esc(p.src)}" alt="${esc(y.name)} photo ${i + 1} of ${ph.length}" ${i ? 'loading="lazy"' : ''} draggable="false">`
+    ).join('');
+    const multi = ph.length > 1;
+    gallery = `<div class="gallery">
+        <div class="gallery-track" ${multi ? 'tabindex="0" aria-label="' + esc(y.name) + ' photos, use arrow keys to scroll"' : ''}>${slides}</div>
+        ${multi ? `<button class="gallery-btn gallery-prev" type="button" aria-label="Previous photo" disabled>&#8249;</button>
+        <button class="gallery-btn gallery-next" type="button" aria-label="Next photo">&#8250;</button>
+        <div class="gallery-count" aria-live="polite">1 / ${ph.length}</div>` : ''}
+      </div>`;
+  }
+  const firstCredit = ph[0] && ph[0].credit;
+  const credit = `<div class="fact-credit"${firstCredit ? '' : ' hidden'}>${esc(firstCredit || '')}</div>`;
+  const platform = y.detail
+    ? `<div class="fact-platform">${DETAIL_LABEL ? `<b>${esc(DETAIL_LABEL)}:</b> ` : ''}${esc(y.detail)}</div>` : '';
+  return `${gallery}${credit}
+    <div class="fact-body">
+      <div class="fact-name">${esc(y.name)}</div>
+      ${y.text ? y.text.split('\n').filter(t => t.trim()).map(t => `<p class="fact-text">${esc(t)}</p>`).join('') : ''}
+      ${platform}
+    </div>`;
+}
+
+// Wire up arrows, counter, per-photo credit, and arrow keys for a rendered fact box
+function wireGallery(box, y) {
+  const track = box.querySelector('.gallery-track');
+  if (!track) return;
+  const ph = photos(y);
+  const prev = box.querySelector('.gallery-prev');
+  const next = box.querySelector('.gallery-next');
+  const count = box.querySelector('.gallery-count');
+  const credit = box.querySelector('.fact-credit');
+  const n = ph.length;
+  const idx = () => Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+  const go = i => track.scrollTo({ left: Math.max(0, Math.min(n - 1, i)) * track.clientWidth });
+  const sync = () => {
+    const i = Math.max(0, Math.min(n - 1, idx()));
+    if (count) count.textContent = `${i + 1} / ${n}`;
+    if (prev) prev.disabled = i === 0;
+    if (next) next.disabled = i === n - 1;
+    const c = ph[i].credit;
+    credit.textContent = c; credit.hidden = !c;
+  };
+  if (prev) prev.addEventListener('click', e => { e.stopPropagation(); go(idx() - 1); });
+  if (next) next.addEventListener('click', e => { e.stopPropagation(); go(idx() + 1); });
+  track.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') { e.preventDefault(); go(idx() + 1); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); go(idx() - 1); }
+  });
+  let t; track.addEventListener('scroll', () => { clearTimeout(t); t = setTimeout(sync, 60); }, { passive: true });
+  sync();
+}
+
+
+// Fact box: popup on wide screens, single-column bottom sheet on narrow ones
+const NARROW = window.matchMedia('(max-width: 560px)');
+const sheet = document.getElementById('sheet');
+const sheetContent = document.getElementById('sheet-content');
+const popup = L.popup({ maxWidth: 280, autoPanPadding: [20, 20], closeButton: true });
+let lastMarker = null;
+
+// Shrink the photo (cropping, not squashing) so the whole fact box fits in the map.
+// Keeps full 3:2 when there's room; never goes below MIN_IMG px.
+const MIN_IMG = 70;
+function fitImage(box, available) {
+  const img = box.querySelector('.gallery-track, .fact-img-empty');
+  if (!img) return;
+  img.style.height = '';
+  img.style.aspectRatio = '';
+  const full = img.getBoundingClientRect().height;          // natural 3:2 height
+  const rest = box.scrollHeight - full;                      // name, text, credit, platform
+  const h = Math.max(MIN_IMG, Math.min(full, available - rest));
+  img.style.aspectRatio = 'auto';
+  img.style.height = h + 'px';
+  // keep the current photo lined up after a resize
+  if (img.classList.contains('gallery-track')) {
+    const i = Math.round(img.scrollLeft / Math.max(1, img.clientWidth));
+    img.style.scrollBehavior = 'auto'; img.scrollLeft = i * img.clientWidth; img.style.scrollBehavior = '';
+  }
+}
+function refit() {
+  const mapH = map.getSize().y;
+  if (!sheet.hidden) fitImage(sheetContent, mapH);
+  if (map.hasLayer(popup)) {
+    // room for popup chrome, tip, and pan padding
+    fitImage(popup.getElement().querySelector('.leaflet-popup-content'), mapH - 70);
+    popup.update();
+  }
+}
+
+function openFact(y, marker) {
+  lastMarker = marker;
+  if (NARROW.matches) {
+    map.closePopup();
+    sheetContent.innerHTML = factBox(y);
+    wireGallery(sheetContent, y);
+    sheet.hidden = false;
+    sheet.scrollTop = 0;
+    refit();
+    document.getElementById('sheet-close').focus({ preventScroll: true });
+  } else {
+    closeSheet(false);
+    popup.setLatLng(marker.getLatLng()).setContent(factBox(y)).openOn(map);
+    wireGallery(popup.getElement(), y);
+    refit();
+  }
+}
+function closeSheet(returnFocus = true) {
+  if (sheet.hidden) return;
+  sheet.hidden = true;
+  if (returnFocus && lastMarker && lastMarker.getElement()) lastMarker.getElement().focus();
+}
+document.getElementById('sheet-close').addEventListener('click', () => closeSheet());
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+map.on('click', () => closeSheet(false));
+// Switching layouts (rotate phone, resize) closes whatever is open
+NARROW.addEventListener('change', () => { map.closePopup(); closeSheet(false); });
+
+map.on('resize', refit);
+document.fonts && document.fonts.ready.then(refit);
+
+const bounds = [];
+YARDS.forEach(y => {
+  const icon = L.divIcon({
+    className: '',
+    html: `<div class="yard-marker"><span class="yard-dot" style="background:${(TYPES[y.type] || TYPES.prime).color}"></span><span class="yard-name">${esc(y.name)}</span></div>`,
+    iconSize: null,
+    iconAnchor: [7, 7],
+    popupAnchor: [0, -6]
+  });
+  const m = L.marker([y.lat, y.lng], { icon, keyboard: true, title: y.name, alt: y.name, zIndexOffset: y.type === 'prime' ? 500 : 0 }).addTo(map);
+  m.on('click', () => openFact(y, m));
+  bounds.push([y.lat, y.lng]);
+});
+
+map.fitBounds(bounds, { padding: [15, 15], maxZoom: 9 });
+
+// Show all names only once zoomed in far enough to read them
+const LABEL_ZOOM = 7;
+const mapEl = document.getElementById('map');
+const syncLabels = () => mapEl.classList.toggle('labels-off', map.getZoom() < LABEL_ZOOM);
+map.on('zoomend', syncLabels);
+syncLabels();
+
+// Title (hidden if blank)
+if (TITLE) {
+  const t = L.control({ position: 'topleft' });
+  t.onAdd = () => { const d = L.DomUtil.create('div', 'map-title'); d.textContent = TITLE; return d; };
+  t.addTo(map);
+  // re-add zoom so the buttons sit below the title, not above it
+  map.removeControl(map.zoomControl);
+  map.zoomControl.addTo(map);
+}
+
+// Logo (hidden if blank)
+if (LOGO_URL) {
+  const l = L.control({ position: 'bottomleft' });
+  l.onAdd = () => { const d = L.DomUtil.create('div', 'map-logo'); d.innerHTML = `<img src="${esc(LOGO_URL)}" alt="USNI News">`; return d; };
+  l.addTo(map);
+}
+
+// Legend
+const lg = L.control({ position: 'bottomright' });
+lg.onAdd = () => {
+  const d = L.DomUtil.create('div', 'map-legend');
+  d.innerHTML = Object.values(TYPES).map(t =>
+    `<div class="legend-row"><span class="yard-dot" style="background:${t.color}"></span>${esc(t.label)}</div>`).join('');
+  return d;
+};
+lg.addTo(map);
+
+// Interaction hint
+const h = L.control({ position: 'topright' });
+h.onAdd = () => { const d = L.DomUtil.create('div', 'map-hint'); d.textContent = 'Select a shipyard for details'; return d; };
+h.addTo(map);
+</script>
+</body>
+</html>
