@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ingalls Shipbuilding 2026</title>
+<style>
+  :root {
+    --hg-ratio: 3 / 2;
+    --hg-muted: #555;
+    --hg-font: Georgia, "Times New Roman", serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: transparent; font-family: var(--hg-font); }
+
+  .hg { position: relative; }
+  .hg-track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin: 0; padding: 0;
+  }
+  .hg-track::-webkit-scrollbar { display: none; }
+  .hg-track:focus-visible { outline: 2px solid #000; outline-offset: -2px; }
+
+  figure.hg-slide {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    margin: 0;
+  }
+  .hg-slide img {
+    display: block; width: 100%; height: auto;
+    aspect-ratio: var(--hg-ratio);
+    object-fit: cover;
+    background: #ddd;
+  }
+  .hg-slide figcaption {
+    font-size: 15px; line-height: 1.5; color: var(--hg-muted);
+    margin-top: 8px; padding: 0 4px; max-width: 72ch;
+  }
+  .hg-slide figcaption:empty { display: none; }
+
+  .hg-btn {
+    position: absolute;
+    top: 0; height: 0;
+    width: 44px;
+    border: 0; padding: 0; background: none; cursor: pointer;
+  }
+  .hg-btn span {
+    position: absolute; top: 0; transform: translateY(-50%);
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,0.85); color: #000;
+    font: 28px/44px Arial, sans-serif; text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  .hg-prev { left: 10px; }
+  .hg-next { right: 10px; }
+  .hg-btn:disabled { display: none; }
+  .hg-btn:focus-visible span { outline: 3px solid #fff; outline-offset: 2px; }
+
+  @media (max-width: 600px) {
+    .hg-btn span { width: 36px; height: 36px; font-size: 24px; line-height: 36px; }
+    .hg-prev { left: 6px; } .hg-next { right: 6px; }
+    .hg-slide figcaption { font-size: 14px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .hg-track { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="hg">
+  <div class="hg-track" tabindex="0" role="region" aria-label="Photo gallery">
+
+    <figure class="hg-slide">
+      <img src="https://news.usni.org/wp-content/uploads/2026/10/AM1A8806.jpg" alt="Heavy lift crane at HII Ingalls Shipbuilding steel yard with USS Zumwalt in background">
+      <figcaption>A heavy lift crane at HII Ingalls Shipbuilding steel yard with guided-missile destroyer USS Zumwalt (DDG-1000) in the background on Aug. 7, 2026. USNI News photo</figcaption>
+    </figure>
+
+    <figure class="hg-slide">
+      <img src="https://news.usni.org/wp-content/uploads/2026/10/AM1A9029.jpg" alt="USS Zumwalt and San Antonio-class amphibious warship under construction at Ingalls" loading="lazy">
+      <figcaption>USS Zumwalt (DDG-1000) and a San Antonio-class amphibious warship under construction at Ingalls Shipbuilding on Aug. 7, 2026. USNI News photo</figcaption>
+    </figure>
+
+    <figure class="hg-slide">
+      <img src="https://news.usni.org/wp-content/uploads/2026/10/AM1A8907.jpg" alt="Worker boarding a destroyer under construction at Ingalls Shipbuilding" loading="lazy">
+      <figcaption>A worker boarding a destroyer under construction at Ingalls Shipbuilding on Aug. 7, 2026. USNI News photo</figcaption>
+    </figure>
+
+    <figure class="hg-slide">
+      <img src="https://news.usni.org/wp-content/uploads/2026/10/AM1A8938.jpg" alt="Future USS Fallujah (LHA-9) under construction at Ingalls Shipbuilding" loading="lazy">
+      <figcaption>The future USS Fallujah (LHA-9) under construction at Ingalls Shipbuilding on Aug. 7, 2026. USNI News photo</figcaption>
+    </figure>
+
+    <figure class="hg-slide">
+      <img src="https://news.usni.org/wp-content/uploads/2026/10/AM1A8834.jpg" alt="Rail cars used to transport ship modules at HII Ingalls Shipbuilding" loading="lazy">
+      <figcaption>Rail cars used to transport ship modules at HII Ingalls Shipbuilding on Aug. 7, 2026. USNI News photo</figcaption>
+    </figure>
+
+    <figure class="hg-slide">
+      <img src="https://news.usni.org/wp-content/uploads/2026/10/AM1A8909.jpg" alt="Destroyers under construction at Ingalls Shipbuilding" loading="lazy">
+      <figcaption>Destroyers under construction at Ingalls Shipbuilding on Aug. 7, 2026. USNI News photo</figcaption>
+    </figure>
+
+  </div>
+  <button type="button" class="hg-btn hg-prev" aria-label="Previous photo"><span>&#8249;</span></button>
+  <button type="button" class="hg-btn hg-next" aria-label="Next photo"><span>&#8250;</span></button>
+</div>
+
+<script>
+(function () {
+  var track = document.querySelector('.hg-track');
+  var slides = track.querySelectorAll('.hg-slide');
+  var prev = document.querySelector('.hg-prev');
+  var next = document.querySelector('.hg-next');
+
+  function idx() { return Math.round(track.scrollLeft / track.clientWidth); }
+  function go(i) {
+    i = Math.max(0, Math.min(slides.length - 1, i));
+    track.scrollTo({ left: i * track.clientWidth });
+  }
+  function placeArrows() {
+    var img = slides[0].querySelector('img');
+    var y = img.getBoundingClientRect().height / 2;
+    prev.style.top = next.style.top = y + 'px';
+  }
+  function update() {
+    var i = idx();
+    prev.disabled = i <= 0;
+    next.disabled = i >= slides.length - 1;
+  }
+  function reportHeight() {
+    var h = document.documentElement.scrollHeight;
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'usni-gallery-height', src: location.href, height: h }, '*');
+    }
+  }
+
+  prev.addEventListener('click', function () { go(idx() - 1); });
+  next.addEventListener('click', function () { go(idx() + 1); });
+  track.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') { e.preventDefault(); go(idx() + 1); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); go(idx() - 1); }
+  });
+  var t;
+  track.addEventListener('scroll', function () { clearTimeout(t); t = setTimeout(update, 50); });
+  window.addEventListener('resize', function () { placeArrows(); update(); reportHeight(); });
+  window.addEventListener('load', function () { placeArrows(); reportHeight(); });
+  if ('ResizeObserver' in window) new ResizeObserver(reportHeight).observe(document.body);
+
+  placeArrows(); update(); reportHeight();
+})();
+</script>
+</body>
+</html>
