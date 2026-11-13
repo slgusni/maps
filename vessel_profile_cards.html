@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vessel Profile Cards</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Helvetica, Arial, sans-serif; background: #fff; color: #222; padding: 16px; }
+
+  #wrap { max-width: 640px; margin: 0 auto; }
+
+  /* ── Heading ── */
+  #title {
+    font-size: 26px; font-weight: 700; color: #36332f;
+    padding-bottom: 10px; margin-bottom: 14px; border-bottom: 3px solid #c8441f;
+  }
+
+  /* ── Tabs ── */
+  #tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  #tabs button {
+    font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    padding: 8px 12px; border: 1px solid #36332f; background: #fff; color: #36332f; cursor: pointer;
+  }
+  #tabs button.active { background: #36332f; color: #fff; }
+
+  /* ── Card ── */
+  .card { border: 1px solid #ddd; background: #fff; }
+  .photo { width: 100%; aspect-ratio: 16 / 10; background: #d9d9d9; display: flex; align-items: center; justify-content: center; color: #888; font-size: 13px; overflow: hidden; }
+  .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .caption { font-size: 11px; font-style: italic; color: #777; padding: 8px 14px; background: #f7f6f2; }
+  .caption b { font-weight: 700; }
+
+  .head { background: #36332f; padding: 14px 16px 12px; border-bottom: 3px solid #c8441f; }
+  .kicker { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #aaa; margin-bottom: 4px; }
+  .name { font-size: 20px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: #fff; }
+  .type { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #e0562e; margin-top: 4px; font-weight: 700; }
+
+  table { width: 100%; border-collapse: collapse; }
+  tr:nth-child(odd)  { background: #fff; }
+  tr:nth-child(even) { background: #f7f6f2; }
+  th, td { text-align: left; padding: 11px 16px; font-size: 14px; border-bottom: 1px solid #eee; }
+  th { width: 34%; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #8a867e; font-weight: 700; }
+  td { font-weight: 700; }
+
+  .source { font-size: 11px; font-style: italic; color: #777; padding: 8px 14px; }
+  .source b { font-weight: 700; }
+
+  .empty { padding: 28px 16px; border: 2px dashed #ccc; color: #999; text-align: center; font-size: 14px; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <h2 id="title">The New Six Frigates</h2>
+  <div id="tabs"></div>
+  <div id="card-host"></div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   FILL IN YOUR SIX SHIPS HERE
+   - Rows with an empty value are NOT shown, so only fill
+     in what you've sourced.
+   - Change, add, or remove spec rows per ship as needed
+     (frigates may use "Armament", "Class", etc.).
+   - photo: URL of the photo alone (not the whole card image).
+   - Names, types and displacement come from your notes; add
+     the rest from your own sourcing.
+   ═══════════════════════════════════════════════════════ */
+const SHIPS = [
+  { tab: "Ship 1", name: "FFX Flight I", type: "", photo: "https://news.usni.org/wp-content/uploads/2026/04/680018947_122110144148985384_3628097066774778081_n.jpg", caption: "", source: "US Navy", specs: [["Displacement","4,750 tons"],["Length","421 feet"],["Beam","54 feet"],["Draft","22 feet"],["Top speed","28 knots"],["Range","12,000 nautical miles"],["Endurance","60 days"],["Crew",""]] },
+  { tab: "Ship 2", name: "FREMM Evolved (EVO)", type: "FFG", photo: "https://news.usni.org/wp-content/uploads/2026/09/Screenshot-2026-09-27-at-11.24.52-AM.png", caption: "", source: "Fincantieri", specs: [["Displacement","~6,500 tons"],["Length","472 feet overall"],["Beam","65 feet"],["Draft","17 feet"],["Top speed","27+ knots"],["Range","6,000 nautical miles @ 15 knots"],["Endurance","45 days"],["Berthing places","145"],["Total accommodation","179"]] },
+  { tab: "Ship 3", name: "Istanbul-class", type: "FFG", photo: "https://www.usni.org/sites/default/files/styles/hero_image_1600/public/CFW-PRO-10-24%201%20Hero.jpg?itok=lQLutRq6", caption: "", source: "", specs: [["Displacement","3,000 tons (full load)"],["Length","371 feet, 5 inches"],["Beam","47 feet, 3 inches"],["Draft","13 feet, 3 inches"],["Top speed","29 knots"],["Range","6,500 nautical miles @ 14 knots"],["Complement","125"]] },
+  { tab: "Ship 4", name: "Upgraded Mogami", type: "FFM (Frigate, Mine Countermeasures)", photo: "https://news.usni.org/wp-content/uploads/2023/12/03-1.jpg", caption: "", source: "Royal Australian Navy", specs: [["Displacement","4,800 tons"],["Length","466 feet"],["Beam","56 feet"],["Top speed","30+ knots"],["Crew","~92"],["Accommodation","127"]] },
+  { tab: "Ship 5", name: "Chungnam-class", type: "FFG", photo: "https://www.navalnews.com/wp-content/uploads/2024/12/ROKS-Chungnam_2-scaled.jpeg.webp", caption: "", source: "Republic of Korea Navy", specs: [["Displacement","4,300 tons"],["Length","423 feet"],["Beam","49 feet"],["Draft","15 feet"],["Top speed","30 knots"],["Range","4,500 nautical miles"],["Complement","120"]] },
+  { tab: "Ship 6", name: "F110/Bonifaz-class", type: "FFG", photo: "https://upload.wikimedia.org/wikipedia/commons/9/95/Clase_Bonifaz_F110.png", caption: "", source: "Navantia", specs: [["Displacement","6,100 tons"],["Length","476 feet"],["Beam","59 feet"],["Draft","16 feet"],["Top speed","26+ knots (up to 35 knots sprint)"],["Range","4,100 nautical miles @ 15 knots"],["Complement","150"]] }
+];
+
+const KICKER = "Vessel Profile";
+
+/* ── Rendering (no need to edit below) ── */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const tabsEl = document.getElementById('tabs');
+const host = document.getElementById('card-host');
+
+function render(i) {
+  const s = SHIPS[i];
+  [...tabsEl.children].forEach((b, j) => b.classList.toggle('active', j === i));
+
+  if (!s.name) {
+    host.innerHTML = '<div class="empty">Fill in this ship in the SHIPS list.</div>';
+    return;
+  }
+  const rows = s.specs.filter(([, v]) => v).map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join('');
+  host.innerHTML = `
+    <div class="card">
+      <div class="photo">${s.photo ? `<img src="${esc(s.photo)}" alt="${esc(s.name)}">` : 'Photo goes here'}</div>
+      ${s.caption ? `<div class="caption"><b>Photo:</b> ${esc(s.caption)}</div>` : ''}
+      <div class="head">
+        <div class="kicker">${esc(KICKER)}</div>
+        <div class="name">${esc(s.name)}</div>
+        ${s.type ? `<div class="type">${esc(s.type)}</div>` : ''}
+      </div>
+      <table>${rows}</table>
+      ${s.source ? `<div class="source"><b>Source:</b> ${esc(s.source)}</div>` : ''}
+    </div>`;
+}
+
+SHIPS.forEach((s, i) => {
+  const b = document.createElement('button');
+  b.textContent = s.name || s.tab;
+  b.onclick = () => render(i);
+  tabsEl.appendChild(b);
+});
+render(0);
+</script>
+</body>
+</html>
