@@ -68,11 +68,11 @@
      the rest from your own sourcing.
    ═══════════════════════════════════════════════════════ */
 const SHIPS = [
-  { tab: "Ship 1", name: "Type 31 Arrowhead", type: "", photo: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a2/2026.08.11_ORP_Wicher_Gdynia_07.jpg/3840px-2026.08.11_ORP_Wicher_Gdynia_07.jpg", caption: "", source: "Babcock", specs: [["Displacement","~7,000 tons"],["Length","456 feet"],["Beam","66 feet"],["Top speed","26 to 28 knots"],["Range",""],["Core crew","50 to 107"],["Total accommodation","187"]] },
+  { tab: "Ship 1", name: "Type 31 Arrowhead", type: "(Polish variant)", photo: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a2/2026.08.11_ORP_Wicher_Gdynia_07.jpg/3840px-2026.08.11_ORP_Wicher_Gdynia_07.jpg", caption: "", source: "Babcock", specs: [["Displacement","~7,000 tons"],["Length","456 feet"],["Beam","66 feet"],["Top speed","26 to 28 knots"],["Range",""],["Core crew","50 to 107"],["Total accommodation","187"]] },
   { tab: "Ship 2", name: "FREMM Evolved (EVO)", type: "FFG", photo: "https://news.usni.org/wp-content/uploads/2026/09/Screenshot-2026-09-27-at-11.24.52-AM.png", caption: "", source: "Fincantieri", specs: [["Displacement","~6,500 tons"],["Length","472 feet overall"],["Beam","65 feet"],["Draft","17 feet"],["Top speed","27+ knots"],["Range","6,000 nautical miles @ 15 knots"],["Endurance","45 days"],["Berthing places","145"],["Total accommodation","179"]] },
-  { tab: "Ship 3", name: "Istanbul-class", type: "FFG", photo: "https://www.usni.org/sites/default/files/styles/hero_image_1600/public/CFW-PRO-10-24%201%20Hero.jpg?itok=lQLutRq6", caption: "", source: "", specs: [["Displacement","3,000 tons (full load)"],["Length","371 feet, 5 inches"],["Beam","47 feet, 3 inches"],["Draft","13 feet, 3 inches"],["Top speed","29 knots"],["Range","6,500 nautical miles @ 14 knots"],["Complement","125"]] },
-  { tab: "Ship 4", name: "Upgraded Mogami", type: "FFM (Frigate, Mine Countermeasures)", photo: "https://news.usni.org/wp-content/uploads/2023/12/03-1.jpg", caption: "", source: "Royal Australian Navy", specs: [["Displacement","4,800 tons"],["Length","466 feet"],["Beam","56 feet"],["Top speed","30+ knots"],["Crew","~92"],["Accommodation","127"]] },
-  { tab: "Ship 5", name: "Chungnam-class", type: "FFG", photo: "https://www.navalnews.com/wp-content/uploads/2024/12/ROKS-Chungnam_2-scaled.jpeg.webp", caption: "", source: "Republic of Korea Navy", specs: [["Displacement","4,300 tons"],["Length","423 feet"],["Beam","49 feet"],["Draft","15 feet"],["Top speed","30 knots"],["Range","4,500 nautical miles"],["Complement","120"]] },
+  { tab: "Ship 3", name: "Istanbul-class", type: "FFG", photo: "https://www.usni.org/sites/default/files/styles/hero_image_1600/public/CFW-PRO-10-24%201%20Hero.jpg?itok=lQLutRq6", caption: "", source: "", specs: [["Displacement","3,000 tons"],["Length","371 feet, 5 inches"],["Beam","47 feet, 3 inches"],["Draft","13 feet, 3 inches"],["Top speed","29 knots"],["Range","6,500 nautical miles @ 14 knots"],["Complement","125"]] },
+  { tab: "Ship 4", name: "Upgraded Mogami", type: "FFM (Frigate, Mine Countermeasures)", photo: "https://news.usni.org/wp-content/uploads/2023/12/03-1.jpg", caption: "", source: "Royal Australian Navy", specs: [["Displacement","~6,200 tons"],["Length","466 feet"],["Beam","56 feet"],["Top speed","30+ knots"],["Crew","~92"],["Accommodation","127"]] },
+  { tab: "Ship 5", name: "Chungnam-class", type: "FFG", photo: "https://www.navalnews.com/wp-content/uploads/2024/12/ROKS-Chungnam_2-scaled.jpeg.webp", caption: "", source: "Republic of Korea Navy, U.S. Naval Institute Proceedings", specs: [["Displacement","4,300 tons"],["Length","423 feet"],["Beam","49 feet"],["Draft","15 feet"],["Top speed","30 knots"],["Range","4,500 nautical miles @ 15 knots"],["Complement","120"]] },
   { tab: "Ship 6", name: "F110/Bonifaz-class", type: "FFG", photo: "https://upload.wikimedia.org/wikipedia/commons/9/95/Clase_Bonifaz_F110.png", caption: "", source: "Navantia", specs: [["Displacement","6,100 tons"],["Length","476 feet"],["Beam","59 feet"],["Draft","16 feet"],["Top speed","26+ knots (up to 35 knots sprint)"],["Range","4,100 nautical miles @ 15 knots"],["Complement","150"]] }
 ];
 
@@ -91,7 +91,7 @@ function render(i) {
     host.innerHTML = '<div class="empty">Fill in this ship in the SHIPS list.</div>';
     return;
   }
-  const rows = s.specs.filter(([, v]) => v).map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join('');
+  const rows = s.specs.filter(([, v]) => v).map(([k, v]) => `<tr><th>${esc(k === 'Displacement' ? 'Full load displacement' : k)}</th><td>${esc(v)}</td></tr>`).join('');
   host.innerHTML = `
     <div class="card">
       <div class="photo">${s.photo ? `<img src="${esc(s.photo)}" alt="${esc(s.name)}">` : 'Photo goes here'}</div>
