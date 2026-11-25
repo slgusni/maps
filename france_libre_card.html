@@ -6,6 +6,7 @@
 <title>FS France Libre</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overflow: hidden; }
   body { font-family: Helvetica, Arial, sans-serif; background: #fff; color: #222; padding: 0; }
   #wrap { max-width: 100%; margin: 0 auto; }
 
@@ -20,15 +21,25 @@
   .name { font-size: 20px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: #fff; }
   .type { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #e0562e; margin-top: 4px; font-weight: 700; }
 
-  table { width: 100%; border-collapse: collapse; }
-  tr:nth-child(odd)  { background: #fff; }
-  tr:nth-child(even) { background: #f7f6f2; }
-  th, td { text-align: left; vertical-align: top; padding: 11px 16px; font-size: 14px; border-bottom: 1px solid #eee; }
-  th { width: 34%; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #8a867e; font-weight: 700; }
-  td { font-weight: 700; line-height: 1.4; }
+  /* ── Two-column spec grid ── */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-flow: dense;       /* long items span both columns; short ones fill the gaps */
+    gap: 1px;
+    background: #e6e4de;         /* shows through as the divider lines */
+  }
+  .cell { background: #fff; padding: 10px 16px 11px; }
+  .cell.wide { grid-column: 1 / -1; }
+  .k { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: #8a867e; font-weight: 700; margin-bottom: 3px; }
+  .v { font-size: 14px; font-weight: 700; line-height: 1.4; }
 
-  .source { font-size: 11px; font-style: italic; color: #777; padding: 8px 14px; }
+  .source { font-size: 11px; font-style: italic; color: #777; padding: 8px 14px; border-top: 1px solid #e6e4de; }
   .source b { font-weight: 700; }
+
+  @media (max-width: 520px) {
+    .grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -38,6 +49,7 @@
 /* ═══════════════════════════════════════════════════════
    EDIT THE SHIP DATA HERE
    - Rows with an empty value are not shown.
+   - Values longer than WIDE_AT characters span both columns.
    - photo: URL of the photo alone. Leave "" for a grey box.
    - type and caption are blank because none were provided.
    ═══════════════════════════════════════════════════════ */
@@ -65,10 +77,13 @@ const SHIP = {
 };
 
 const KICKER = "Vessel Profile";
+const WIDE_AT = 70;
 
 /* ── Rendering (no need to edit below) ── */
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const rows = SHIP.specs.filter(([, v]) => v).map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join('');
+const cells = SHIP.specs.filter(([, v]) => v).map(([k, v]) =>
+  `<div class="cell${v.length > WIDE_AT ? ' wide' : ''}"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`
+).join('');
 
 document.getElementById('card-host').innerHTML = `
   <div class="card">
@@ -79,7 +94,7 @@ document.getElementById('card-host').innerHTML = `
       <div class="name">${esc(SHIP.name)}</div>
       ${SHIP.type ? `<div class="type">${esc(SHIP.type)}</div>` : ''}
     </div>
-    <table>${rows}</table>
+    <div class="grid">${cells}</div>
     ${SHIP.source ? `<div class="source"><b>${esc(SHIP.sourceLabel)}:</b> ${esc(SHIP.source)}</div>` : ''}
   </div>`;
 
